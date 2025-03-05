@@ -1,0 +1,64 @@
+{
+  "author": "foxit",
+  "copyright": "Copyright © 2024-2025 Foxit Software Inc. All Rights Reserved.",
+  "description": "Javascript Annotation plugin demo",
+  "icon": "test/res/panelicon_.png",
+  "id": "Annotation",
+  "manifest_version": 1,
+  "name": "Annotation",
+  "title": "Javascript Plug-in Demo",
+  "friendly_name": "Javascript Annotation plugin",
+  "domain": "www.testplugin.com",
+  "ribbon":
+  [
+    {
+      "customTab":
+      {
+        "groups":
+        [
+          {
+            "controls":
+            [
+              {
+                "control":
+                {
+                  "action":
+                  {
+                    "functionname": "showPanel",
+                    "type": "DoModelDialog",
+                    "url": "./index.html"
+                  },
+                  "enable": true,
+                  "icon": "./img/button_16.png;./img/button_32.png;",
+                  "id": "BtnConnectService",
+                  "title": "Annotation",
+                  "description": "this is a button",
+                  "tooltip": "Annotation",
+                  "type": "Button"
+                }
+              }
+            ],
+            "id": "CustomGroup",
+            "label": "label"
+          }
+        ],
+        "id": "Annotation"
+      }
+    }
+  ],
+  "signcode": "",
+  "version": "2.0.0",
+  "resources":
+  {
+    "en-US":
+    {
+      "extCopyright": "Custom copyright",
+      "extDescription": "Custom description",
+      "PanelTitle": "Custom title",
+      "PanelTip": "Custom panel tip",
+      "ControlActionTitle": "Custom action title",
+      "ButtonTitle": "Custom button title",
+      "ButtonTip": "Custom button tip"
+    }
+  }
+}
