@@ -4,6 +4,26 @@ import path  from 'path';
 import archiver  from 'archiver';
 import { fileURLToPath } from 'url';
 
+// copy directory
+function copyDirectory(src, dest) {
+    if (!fs.existsSync(dest)) {
+        fs.mkdirSync(dest, { recursive: true });
+    }
+
+    const entries = fs.readdirSync(src, { withFileTypes: true });
+
+    for (let entry of entries) {
+        const srcPath = path.join(src, entry.name);
+        const destPath = path.join(dest, entry.name);
+
+        if (entry.isDirectory()) {
+            copyDirectory(srcPath, destPath);
+        } else {
+            fs.copyFileSync(srcPath, destPath);
+        }
+    }
+}
+
 async function createZipFromManifest() {
     try {
         // 读取 manifest.json 文件
@@ -18,6 +38,13 @@ async function createZipFromManifest() {
 
         const manifestData = fs.readFileSync(manifestPath, 'utf8');
         const manifest = JSON.parse(manifestData);
+        
+
+        // Copy img to dist
+        const imgSrcPath = path.join(__dirname, 'img');
+        const imgDestPath = path.join(__dirname, 'dist', 'img');
+        copyDirectory(imgSrcPath, imgDestPath);
+
 
         // 获取 id 值
         const id = manifest.id;
