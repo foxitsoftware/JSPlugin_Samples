@@ -23,7 +23,7 @@ const lastSearchText = ref(''); // 上一次搜索的文本
 const isDuplicateSearch = ref(false); // 是否是重复搜索
 // let app: App;
 const searchText = async () => {
-    // rectArr.value = [];
+    rectArr.value = [];
     if (
         _.isEmpty(text.value)
     ) {
