@@ -2,3 +2,4 @@
 .devkit
 node_modules
 .history
+dist
