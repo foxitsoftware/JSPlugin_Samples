@@ -1,6 +1,6 @@
-#  Javascript Plug-in Sample
+#  Javascript Plug-in Samples
 
-Javascript Plug-in Sample 包含Html和Vue示例
+JavaScript Plug-in Samples 是 JavaScript Plug-in SDK 的配套示例集，直观地展示在不同场景下如何运用该SDK，包含 Html 和 Vue 这两种典型示例，具体内容如下：
 
 | Sample     | 说明                                                         |
 | ---------- | ------------------------------------------------------------ |
@@ -10,7 +10,7 @@ Javascript Plug-in Sample 包含Html和Vue示例
 | SearchText | 演示在PDF文件中搜索特定文本并高亮显示结果的操作示例。        |
 | Document   | 演示对文档的相关操作，翻页，获取文档权限，关闭保存文档等。 |
 
-
+在每个示例中，均为您提供了相应的安装与运行指南。不过，在使用这些示例之前，您务必提前完成福昕高级 PDF 编辑器以及 JavaScript 插件管理器插件的安装。
 
 ### 安装福昕高级PDF编辑器
 
