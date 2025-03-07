@@ -1,7 +1,7 @@
 # RibbonBar Sample
 
 ### RibbonBar Sample 的作用
-`RibbonBar Sample` 主要是如何在编辑器界面上使用Ribbon按钮进行各种操作的示例。
+`RibbonBar Sample` 演示如何在编辑器界面上使用Ribbon按钮进行各种操作的示例。
 
 #### 1. 安装依赖
 首先，安装所需的依赖库：
@@ -33,7 +33,7 @@ npm run dev
 #### 卸载插件
 > 注意不同语言下的按钮名称可能会有所不同
 1. 点击工具栏的“Help”按钮（中文可能是“帮助”按钮）
-2. 再次点击“Help”按钮下的二级按钮 foxit Plug-ins
+2. 再次点击“Help”按钮下的二级按钮 “福昕插件”
 3. 找到对应插件，选择后右侧会出现 删除按钮，点击删除按钮即可
 4. 点击删除后，关闭 Foxit PDF Editor 后，插件会自动卸载。
 
