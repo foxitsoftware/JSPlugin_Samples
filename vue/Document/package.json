@@ -7,7 +7,8 @@
         "dev": "vite --host",
         "build": "vue-tsc -b && vite build",
         "preview": "vite preview",
-        "packagelocal": "vue-tsc -b && vite build && node build_local.js"
+        "packagelocal": "vue-tsc -b && vite build && node build_local.js",
+        "local": "cross-env FX_JSPLUGINSDK_LOCAL=true vite --host"
     },
     "dependencies": {
         "archiver": "^7.0.1",
@@ -19,6 +20,7 @@
         "@types/vue": "^2.0.0",
         "@vitejs/plugin-vue": "^5.1.2",
         "@vitejs/plugin-legacy": "^5.0.0",
+        "cross-env": "^7.0.3",
         "less": "^4.2.0",
         "naive-ui": "^2.39.0",
         "typescript": "^5.5.3",

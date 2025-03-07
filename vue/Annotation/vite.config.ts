@@ -3,6 +3,10 @@ import vue from '@vitejs/plugin-vue';
 import path from 'path';
 import legacy from '@vitejs/plugin-legacy';
 // https://vitejs.dev/config/
+
+// 获取环境变量
+const isLocal = process.env.FX_JSPLUGINSDK_LOCAL === 'true';
+
 export default defineConfig({
     base: './', // 设置 base 为相对路径
     plugins: [
@@ -14,7 +18,9 @@ export default defineConfig({
     resolve: {
         alias: {
             '@components': path.resolve(__dirname, './src/components'),
-            // 'fx-jspluginsdk': path.resolve(__dirname, '../../../js-engine/ts/'),
+            'fx-jspluginsdk': isLocal
+            ? path.resolve(__dirname, '../../../js-engine/ts/')
+            : 'fx-jspluginsdk'
         },
     },
     server: {
