@@ -1,4 +1,4 @@
-#  Javascript Plug-in Samples
+# Javascript Plug-in Samples
 
 JavaScript Plug-in Samples 是 JavaScript Plug-in SDK 的配套示例集，直观地展示在不同场景下如何运用该SDK，包含 Html 和 Vue 这两种典型示例，具体内容如下：
 
