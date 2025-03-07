@@ -1,7 +1,7 @@
 # Annotation Sample
 
 ### Annotation Sample 的作用
-`Annotation Sample` 主要用于在 PDF 文件中添加、编辑和删除注释。注释可以是文本注释、高亮、下划线、删除线等多种形式。这些功能通常用于文档审查、批注或标记重要的信息。通过 `Annotation Sample`，用户可以方便地与 PDF 文档进行交互，提高文档处理的效率和准确性。
+`Annotation Sample` 演示对PDF文件中注释进行添加、编辑和删除操作的示例。
 
 #### 1. 安装依赖
 首先，安装所需的依赖库：

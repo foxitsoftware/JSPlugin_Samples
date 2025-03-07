@@ -1,7 +1,7 @@
 # Annotation Sample
 
 ### Annotation Sample 的作用
-`Annotation Sample` 主要用于在PDF文件中搜索特定文本并高亮显示结果的操作示例。
+`Annotation Sample` 演示对PDF文件中注释进行添加、编辑和删除操作的示例。
 
 #### 安装插件
 > 注意不同语言下的按钮名称可能会有所不同
