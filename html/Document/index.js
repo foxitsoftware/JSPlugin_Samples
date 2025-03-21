@@ -1,3 +1,14 @@
+window.nextPage = () => {};
+window.previousPage = () => {};
+window.printDoc = () => {};
+window.closeDoc = () => {};
+window.saveDoc = () => {};
+window.insertPages = () => {};
+window.replacePages = () => {};
+window.extractPages = () => {};
+window.convertDoc = () => {};
+window.getDocPermission = () => {};
+
 window.onload = async () => {
     // const PluginApp = window.Foxit.PluginApp;
     // const PDFDictionary = window.Foxit.PDFDictionary;

@@ -1,3 +1,7 @@
+window.createHighlightAnnot = () => {};
+window.deleteHighlightAnnot = () => {};
+window.createUnderlineAnnot = () => {};
+
 window.onload = async () => {
     // const PluginApp = window.Foxit.PluginApp;
     // const PDFDictionary = window.Foxit.PDFDictionary;
