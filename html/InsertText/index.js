@@ -1,3 +1,6 @@
+window.addText = () => {};
+window.addCJKText = () => {};
+
 window.onload = async () => {
     // const PluginApp = window.Foxit.PluginApp;
     // const PDFDictionary = window.Foxit.PDFDictionary;
