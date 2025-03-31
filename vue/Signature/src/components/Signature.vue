@@ -83,6 +83,62 @@ const signatureSign = async () => {
     console.log('bSign', bSign);
 }
 
+const getSignatureInfo = async () => {
+    doc = await app.getActiveDoc();
+    if (doc === null) {
+        console.log('doc is null');
+        return;
+    }
+    const sig = await Signature.create();
+    let count = await sig.getDocSigatureCount(doc);
+    console.log('getDocSigatureCount: ', count);
+    for (let i = 0; i < count; i++) {
+        let info = await sig.getSignatureInfo(doc, i);
+        if (info) {
+            console.log('SignatureBaseInfo: ', info);
+            // @ts-ignore
+            let verifyState = info.dwVerifyState;
+            if( verifyState & DefineConst.FR_SIG_VERIFY_VALID ) {
+                console.log('Signature is valid');
+            } else {
+                console.log('Signature is invalid');
+            }
+        } else {
+            console.log('getSignatureInfo failed');
+        }
+    }
+}
+
+const clearSignature = async () => {
+    doc = await app.getActiveDoc();
+    if (doc === null) {
+        console.log('doc is null');
+        return;
+    }
+    const sig = await Signature.create();
+    let count = await sig.getDocSigatureCount(doc);
+    console.log('getDocSigatureCount: ', count);
+    for (let i = 0; i < count; i++) {
+        let info = await sig.getSignatureInfo(doc, i);
+        if (info) {
+            console.log('SignatureBaseInfo: ', info);
+            // @ts-ignore
+            if(info.wsSignatureName === '~\r_0') {
+                let clear = await sig.clearSignature(doc, i);
+                if (clear) {
+                    console.log('ClearSignature success');
+                } else {
+                    console.log('ClearSignature failed');
+                }
+            } else{
+                console.log('Signature_0 is not exist');
+            }
+        } else {
+            console.log('getSignatureInfo failed');
+        }
+    }
+}
+
 // vue的生命周期, 在组件挂载完成后执行
 onMounted(async () => {
     doc = await app.getActiveDoc();
@@ -98,6 +154,8 @@ onMounted(async () => {
 <template>
     <div class="signature-content">
         <n-button class="signature-btn" @click="signatureSign">signatureSign</n-button>
+        <n-button class="signature-btn" @click="getSignatureInfo">getSignatureInfo</n-button>
+        <n-button class="signature-btn" @click="clearSignature">clearSignature</n-button>
     </div>
 </template>
 
@@ -106,6 +164,7 @@ onMounted(async () => {
     text-align: left;
     .signature-btn {
         margin-top: 10px;
+        margin-left: 10px;
     }
 }
 </style>
