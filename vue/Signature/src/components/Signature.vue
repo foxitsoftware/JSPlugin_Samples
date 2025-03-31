@@ -97,7 +97,7 @@ const getSignatureInfo = async () => {
         if (info) {
             console.log('SignatureBaseInfo: ', info);
             // @ts-ignore
-            let verifyState = info.dwVerifyState;
+            let verifyState = info.verifyState;
             if( verifyState & DefineConst.FR_SIG_VERIFY_VALID ) {
                 console.log('Signature is valid');
             } else {
@@ -123,7 +123,7 @@ const clearSignature = async () => {
         if (info) {
             console.log('SignatureBaseInfo: ', info);
             // @ts-ignore
-            if(info.wsSignatureName === '~\r_0') {
+            if(info.signatureName === '~\r_0') {
                 let clear = await sig.clearSignature(doc, i);
                 if (clear) {
                     console.log('ClearSignature success');
