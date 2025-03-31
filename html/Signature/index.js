@@ -126,7 +126,7 @@ window.onload = async () => {
             if (info) {
                 console.log('SignatureBaseInfo: ', info);
                 // @ts-ignore
-                if(info.signatureName === '~\r_0') {
+                if(info.signatureName === 'Signature_0') {
                     let clear = await sig.clearSignature(doc, i);
                     if (clear) {
                         console.log('ClearSignature success');
