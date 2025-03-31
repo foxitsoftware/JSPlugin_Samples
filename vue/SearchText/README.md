@@ -38,4 +38,3 @@ npm run dev
 4. 点击删除后，关闭 Foxit PDF Editor 后，插件会自动卸载。
 
 ![alt text](./img/5.png)
-![alt text](image.png)
