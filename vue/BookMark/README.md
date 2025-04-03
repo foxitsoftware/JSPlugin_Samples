@@ -1,7 +1,7 @@
-# Signature Sample
+# BookMark Sample
 
-### Signature Sample 的作用
-`Signature Sample` 演示在PDF文件中搜索特定文本并高亮显示结果的操作示例。
+### BookMark Sample 的作用
+`BookMark Sample` 演示在PDF文件中搜索特定文本并高亮显示结果的操作示例。
 
 #### 1. 安装依赖
 首先，安装所需的依赖库：
@@ -11,8 +11,8 @@ npm install
 npm i
 ```
 
-#### 2. 启动 Signature 这个插件
-运行以下命令启动 Signature 插件：
+#### 2. 启动 BookMark 这个插件
+运行以下命令启动 BookMark 插件：
 ```bash
 npm run dev
 ```
@@ -23,7 +23,7 @@ npm run dev
 3. 再次点击“帮助”按钮下的二级按钮 “福昕插件”
 4. 在弹出的窗口中，点击“安装JS插件”
 5. 点击 “安装JS插件”后会弹出系统选择框，请自行找到当前sample插件的`manifest.json` 文件，选择后点击“打开”即可完成安装。
-6. 安装完成后，会弹窗提示，在 Foxit PDF Editor 的工具栏中会出现一个名为“Signature”的按钮，点击即可使用这个插件。
+6. 安装完成后，会弹窗提示，在 Foxit PDF Editor 的工具栏中会出现一个名为“BookMark”的按钮，点击即可使用这个插件。
 
 ![alt text](./img/1.png)
 ![alt text](./img/2.png)
