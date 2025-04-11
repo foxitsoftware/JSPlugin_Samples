@@ -67,7 +67,7 @@ const signatureSign = async () => {
     console.log('getPageRect', rect);
     let leftValue = rect.left + ((rect.right- rect.left) / 2 - 100);
     let topValue = (rect.bottom - rect.top) / 2;
-    let rightValue = leftValue + 150;;
+    let rightValue = leftValue + 150;
     let bottomValue = topValue - 150;
     const signaturePosInfo = {
         fileSavePath: 'd:\\test\\signed.pdf',
