@@ -35,8 +35,8 @@ async function bootstrap() {
     const app: App = createApp(AppComponent);
     const pluginApp: any = await PluginApp.create({
         pluginInfo: {
-            id: 'SearchText',
-            name: 'SearchText',
+            id: 'Bookmark',
+            name: 'Bookmark',
             version: '',
             description: '',
             author: '',

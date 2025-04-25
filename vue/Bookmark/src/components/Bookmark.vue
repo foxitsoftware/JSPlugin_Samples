@@ -18,7 +18,7 @@ let book_01: any = null;
 let book_02: any = null;
 let book_03: any = null;
 let book_02_01 = null;
-const addBookMark = async () => {
+const addBookmark = async () => {
     doc = await app.getActiveDoc();
     if (
         doc === null
@@ -26,12 +26,13 @@ const addBookMark = async () => {
         return;
     }
     const bookmarkPanel = await BookmarkPanel.create();
-    book_01 = await bookmarkPanel.addBookMark(doc, 'book_01');
-    book_02 = await bookmarkPanel.addBookMark(doc, 'book_02');
-    book_03 = await bookmarkPanel.addBookMark(doc, 'book_03');
+    book_01 = await bookmarkPanel.addBookmark(doc, 'book_01');
+    console.log('addBookmark', book_01);
+    book_02 = await bookmarkPanel.addBookmark(doc, 'book_02');
+    book_03 = await bookmarkPanel.addBookmark(doc, 'book_03');
 }
 
-const insertBookMark = async () => {
+const insertBookmark = async () => {
     doc = await app.getActiveDoc();
     if (
         doc === null
@@ -39,13 +40,13 @@ const insertBookMark = async () => {
         return;
     }
     const bookmarkPanel = await BookmarkPanel.create();
-    book_02_01 = await bookmarkPanel.insertBookMark(doc, 'book_02_01', null, book_02);
-    console.log('insertBookMark', book_02_01);
-    // book_02_01 = await bookmarkPanel.insertBookMark(doc, 'book_02_01', book_02, null);
-    // book_02_01 = await bookmarkPanel.insertBookMark(doc, 'book_02_01', null, null);
+    book_02_01 = await bookmarkPanel.insertBookmark(doc, 'book_02_01', null, book_02);
+    console.log('insertBookmark', book_02_01);
+    // book_02_01 = await bookmarkPanel.insertBookmark(doc, 'book_02_01', book_02, null);
+    // book_02_01 = await bookmarkPanel.insertBookmark(doc, 'book_02_01', null, null);
 }
 
-const moveBookMark = async()=>{
+const moveBookmark = async()=>{
     doc = await app.getActiveDoc();
     if (
         doc === null
@@ -53,11 +54,11 @@ const moveBookMark = async()=>{
         return;
     }
     const bookmarkPanel = await BookmarkPanel.create();
-    await bookmarkPanel.moveBookMark(doc, book_03, null, null);
-    // await bookmarkPanel.moveBookMark(doc, book_03, null, book_01);
+    await bookmarkPanel.moveBookmark(doc, book_03, null, null);
+    // await bookmarkPanel.moveBookmark(doc, book_03, null, book_01);
 }
 
-const deleteBookMark = async () => {
+const deleteBookmark = async () => {
     doc = await app.getActiveDoc();
     if (
         doc === null
@@ -65,7 +66,60 @@ const deleteBookMark = async () => {
         return;
     }
     const bookmarkPanel = await BookmarkPanel.create();
-    await bookmarkPanel.deleteBookMark(doc, book_02);
+    await bookmarkPanel.deleteBookmark(doc, book_02);
+}
+
+const destination = async () => {
+    if (book_01 === null) {
+        return;
+    }
+    doc = await app.getActiveDoc();
+    if (
+        doc === null
+    ) {
+        return;
+    }
+    const dest = await book_01.destination(doc);
+    console.log('Bookmark.destination', dest);
+}
+const color = async () => {
+    if (book_01 === null) {
+        return;
+    }
+    doc = await app.getActiveDoc();
+    if (
+        doc === null
+    ) {
+        return;
+    }
+    const color = await book_01.color();
+    console.log('Bookmark.color', color);
+}
+const title = async () => {
+    if (book_01 === null) {
+        return;
+    }
+    doc = await app.getActiveDoc();
+    if (
+        doc === null
+    ) {
+        return;
+    }
+    const title = await book_01.title();
+    console.log('Bookmark.title', title);
+}
+const fontStyle = async () => {
+    if (book_01 === null) {
+        return;
+    }
+    doc = await app.getActiveDoc();
+    if (
+        doc === null
+    ) {
+        return;
+    }
+    const fontStyle = await book_01.fontStyle();
+    console.log('Bookmark.fontStyle', fontStyle);
 }
 
 // vue的生命周期, 在组件挂载完成后执行
@@ -77,10 +131,14 @@ onMounted(async () => {
 
 <template>
     <div class="bookMark-content">
-        <n-button class="bookMark-btn" @click="addBookMark">addBookMark</n-button>
-        <n-button class="bookMark-btn" @click="insertBookMark">insertBookMark</n-button>
-        <n-button class="bookMark-btn" @click="moveBookMark">moveBookMark</n-button>
-        <n-button class="bookMark-btn" @click="deleteBookMark">deleteBookMark</n-button>
+        <n-button class="bookmark-btn" @click="addBookmark">addBookmark</n-button>
+        <n-button class="bookmark-btn" @click="insertBookmark">insertBookmark</n-button>
+        <n-button class="bookmark-btn" @click="moveBookmark">moveBookmark</n-button>
+        <n-button class="bookmark-btn" @click="deleteBookmark">deleteBookmark</n-button>
+        <n-button class="bookmark-btn" @click="destination">destination</n-button>
+        <n-button class="bookmark-btn" @click="color">color</n-button>
+        <n-button class="bookmark-btn" @click="title">title</n-button>
+        <n-button class="bookmark-btn" @click="fontStyle">fontStyle</n-button>
     </div>
 </template>
 
