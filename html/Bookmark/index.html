@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FoxitPlugin: SearchText</title>
+    <style>
+        #result-list {
+            list-style: none;
+            padding: 0;
+        }
+        #result-list > li {
+            cursor: pointer;
+            background-color: antiquewhite;
+            margin-top: 12px;
+            padding: 6px;
+        }
+    </style>
+    <script src="./lib3/lodash.core.4.17.21.min.js"></script>
+    <!-- <script src="./lib3/jquery.1.12.1.min.js"></script> -->
+
+    <script src="../../../dist/foxit.umd.min.js"></script>
+    <!-- <script src="./index.js"></script> -->
+    <!-- 本地调试时用上面 -->
+    <!-- 要对外展示用用下面 -->
+    <!-- <script>
+        var script = document.createElement('script');
+        script.src = 'https://cdn-sdk.foxitsoftware.cn/plugin-sdk/download/2024.4/1.0.1/foxit.umd.min.js?t=' + new Date().getTime();
+        document.head.appendChild(script);
+    </script> -->
+    <script>
+        var script = document.createElement('script');
+        script.src = './index.js?t=' + new Date().getTime();
+        document.head.appendChild(script);
+    </script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            background-color: white;
+        }
+        .header {
+            text-align: center;
+            margin: 20px 0;
+        }
+        .title {
+            font-size: 1.5em;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+        .button {
+            background-color: #f0f0f0;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 10px 0;
+        }
+        .button:hover {
+            background-color: #e0e0e0;
+        }
+        .signature-content {
+            padding: 10px;
+            text-align: left;
+        }
+    </style>
+</head>
+<body>
+<div class="header">
+    <div class="title">Javascript Plug-in Demo</div>
+</div>
+<div class="signature-content">
+    <button class="button" onClick="addBookMark()">addBookMark</button>
+    <button class="button" onClick="insertBookMark()">insertBookMark</button>
+    <button class="button" onClick="moveBookMark()">moveBookMark</button>
+    <button class="button" onClick="deleteBookMark()">deleteBookMark</button>
+</div>
+</body>
+</html>
