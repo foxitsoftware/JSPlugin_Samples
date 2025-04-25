@@ -45,7 +45,6 @@ const signatureSign = async () => {
         certFile: 'd:\\test\\John Doe.pfx',
         signDictInfo: {
             name: 'John Doe',
-            date: '2025-03-28',
             reason: 'signature test',
             location: 'New York',
             filter: 'Adobe.PPKLite'
@@ -112,7 +111,6 @@ const signatureSignByName = async () => {
         certFile: 'd:\\test\\John Doe.pfx',
         signDictInfo: {
             name: 'John Doe',
-            date: '2025-03-28',
             reason: 'signature test',
             location: 'New York',
             filter: 'Adobe.PPKLite'
