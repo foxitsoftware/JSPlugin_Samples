@@ -206,9 +206,9 @@ const clearSignatureByName = async () => {
     const sig = await Signature.create();
     let clear = await sig.clearSignatureByName(doc, 'Signature_0');
     if (clear) {
-        console.log('clearSignatureByIndex success');
+        console.log('clearSignatureByName success');
     } else {
-        console.log('clearSignatureByIndex failed');
+        console.log('clearSignatureByName failed');
     }
 }
 
