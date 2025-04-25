@@ -135,8 +135,8 @@ window.onload = async () => {
             return;
         }
         const sig = await Signature.create();
-        let count = await sig.getDocSigatureCount(doc);
-        console.log('getDocSigatureCount: ', count);
+        let count = await sig.getSignatureInfoByIndex(doc);
+        console.log('getSignatureInfoByIndex: ', count);
         for (let i = 0; i < count; i++) {
             let info = await sig.getSignatureInfoByIndex(doc, i);
             if (info) {
@@ -182,8 +182,8 @@ window.onload = async () => {
             return;
         }
         const sig = await Signature.create();
-        let count = await sig.getDocSigatureCount(doc);
-        console.log('getDocSigatureCount: ', count);
+        let count = await sig.getSignatureInfoByIndex(doc);
+        console.log('getSignatureInfoByIndex: ', count);
         for (let i = 0; i < count; i++) {
             let info = await sig.getSignatureInfoByIndex(doc, i);
             if (info) {
