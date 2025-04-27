@@ -17,7 +17,8 @@ import {
     // create naive ui
     create,
     NList,
-    NListItem
+    NListItem,
+    NDataTable
 } from 'naive-ui';
 
 const naive = create({
@@ -28,7 +29,8 @@ const naive = create({
         NSelect,
         NConfigProvider,
         NList,
-        NListItem
+        NListItem,
+        NDataTable
     ]
 });
 async function bootstrap() {

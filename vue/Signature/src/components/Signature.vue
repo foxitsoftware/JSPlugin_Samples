@@ -3,7 +3,7 @@ import _ from 'lodash';
 import {
     onMounted,
     getCurrentInstance,
-    // ref
+    ref
 } from 'vue';
 
 import {
@@ -19,7 +19,59 @@ let doc;
 let docView;
 // @ts-ignore
 let pageView = null;
+let signatureName = ref('');
+const signatureData = ref<any[]>([]);
+const clearSignatureInfo = ref<String>('');
+
+const columns = ref([
+    {
+        title: 'signatureName',
+        key: 'signatureName',
+        width: 100,
+    },
+    {
+        title: 'signedAuthorName',
+        key: 'signedAuthorName',
+        width: 100,
+    },
+    {
+        title: 'signedCertName',
+        key: 'signedCertName',
+        width: 100,
+    },
+    {
+        title: 'signedField',
+        key: 'signedField',
+        width: 100,
+    },
+    {
+        title: 'signedLocation',
+        key: 'signedLocation',
+        width: 100,
+    },
+    {
+        title: 'signedPageIndex',
+        key: 'signedPageIndex',
+        width: 100,
+    },
+    {
+        title: 'signedReason',
+        key: 'signedReason',
+        width: 100,
+    },
+    {
+        title: 'signedTime',
+        key: 'signedTime',
+        width: 100,
+    },
+    {
+        title: 'verified',
+        key: 'verified',
+        width: 100,
+    }
+]);
 const signatureSign = async () => {
+    clearSignatureInfo.value = '';
     doc = await app.getActiveDoc();
     const sig = await Signature.create();
     const signatureInfo = {
@@ -81,46 +133,10 @@ const signatureSign = async () => {
     let bSign = await sig.signatureSign(signatureInfo, signaturePosInfo, {}, true);
     console.log('bSign', bSign);
 }
-const signatureSignByName = async () => {
-    doc = await app.getActiveDoc();
-    if (doc === null) {
-        console.log('doc is null');
-        return;
-    }
-    const sig = await Signature.create();
-    const signatureInfo = {
-        signAuthor: 'John Doe',
-        organizationName: 'foxit',
-        organizationalInfo: 'Software Development',
-        emailAddress: 'john.doe@example.com',
-        countryOrRegionInfo: 'United States',
-        executeSign: true,
-        // 按标准样式显示外观，如果要按图标的方式显示外观，那这里需要设置为false
-        useStandAppearance : false,
-        // 按标准样式显示外观
-        showFlag: DefineConst.FR_SIG_SHOW_ALL,
-        iconType: Enum.FR_SG_ICONTYPE.FR_SGIT_NAME,
-        // 要显示图片的需要这样设置
-        // showFlag: 0,
-        // iconType: Enum.FR_SG_ICONTYPE.FR_SGIT_GRAPHICS,
-        // imagePath: 'd:\\test\\signature.png',
-        // imageOpacity: 100,
-        password: '123456',
-        permissionType: Enum.FR_SG_PERMISSION.FR_APG_NONE,
-        textDir: Enum.FR_SG_TEXTDIR.FR_SGTD_AUTO,
-        certFile: 'd:\\test\\John Doe.pfx',
-        signDictInfo: {
-            name: 'John Doe',
-            reason: 'signature test',
-            location: 'New York',
-            filter: 'Adobe.PPKLite'
-        }
-    };
-    let bSign = await sig.signatureSignByName('Signature_0', doc, signatureInfo, 'd:\\test\\signed.pdf', true);
-    console.log('bSign', bSign);
-}
 
-const getSignatureInfoByIndex = async () => {
+const getSignatureInfo = async () => {
+    clearSignatureInfo.value = '';
+    signatureData.value = [];
     doc = await app.getActiveDoc();
     if (doc === null) {
         console.log('doc is null');
@@ -135,78 +151,58 @@ const getSignatureInfoByIndex = async () => {
             console.log('SignatureBaseInfo: ', info);
             // @ts-ignore
             let verifyState = info.verifyState;
-            if( verifyState & DefineConst.FR_SIG_VERIFY_VALID ) {
-                console.log('Signature is valid');
-            } else {
-                console.log('Signature is invalid');
-            }
+            signatureData.value.push({
+                signatureName: info.signatureName,
+                signedAuthorName: info.signedAuthorName,
+                signedCertName: info.signedCertName,
+                signedField: info.signedField,
+                signedLocation: info.signedLocation,
+                signedPageIndex: info.signedPageIndex,
+                signedReason: info.signedReason,
+                signedTime: info.signedTime,
+                verified: verifyState & DefineConst.FR_SIG_VERIFY_VALID ? 'valid' : 'invalid'
+            });
         } else {
             console.log('getSignatureInfoByIndex failed');
         }
+        // if (info) {
+        //     console.log('SignatureBaseInfo: ', info);
+        //     // @ts-ignore
+        //     let verifyState = info.verifyState;
+        //     if( verifyState & DefineConst.FR_SIG_VERIFY_VALID ) {
+        //         console.log('Signature is valid');
+        //     } else {
+        //         console.log('Signature is invalid');
+        //     }
+        // } else {
+        //     console.log('getSignatureInfoByIndex failed');
+        // }
     }
 }
-const getSignatureInfoByName = async () => {
+
+const clearSignature = async () => {
+    clearSignatureInfo.value = '';
+    const _signatureName = signatureName.value;
+    if (
+        _signatureName === ''
+        || _signatureName === undefined
+        || _signatureName === null) {
+        console.log('signatureName is empty');
+        return;
+    }
     doc = await app.getActiveDoc();
     if (doc === null) {
         console.log('doc is null');
         return;
     }
     const sig = await Signature.create();
-    let info = await sig.getSignatureInfoByName(doc, 'Signature_0');
-    if (info) {
-        console.log('SignatureBaseInfo: ', info);
-        // @ts-ignore
-        let verifyState = info.verifyState || 0;
-        if( verifyState & DefineConst.FR_SIG_VERIFY_VALID ) {
-            console.log('Signature is valid');
-        } else {
-            console.log('Signature is invalid');
-        }
-    } else {
-        console.log('getSignatureInfo failed');
-    }
-}
-const clearSignatureByIndex = async () => {
-    doc = await app.getActiveDoc();
-    if (doc === null) {
-        console.log('doc is null');
-        return;
-    }
-    const sig = await Signature.create();
-    let count = await sig.getDocSignatureCount(doc);
-    console.log('getDocSignatureCount: ', count);
-    for (let i = 0; i < count; i++) {
-        let info = await sig.getSignatureInfoByIndex(doc, i);
-        if (info) {
-            console.log('SignatureBaseInfo: ', info);
-            // @ts-ignore
-            if(info.signatureName === 'Signature_0') {
-                let clear = await sig.clearSignatureByIndex(doc, i);
-                if (clear) {
-                    console.log('clearSignatureByIndex success');
-                } else {
-                    console.log('clearSignatureByIndex failed');
-                }
-            } else{
-                console.log('Signature_0 is not exist');
-            }
-        } else {
-            console.log('getSignatureInfoByIndex failed');
-        }
-    }
-}
-const clearSignatureByName = async () => {
-    doc = await app.getActiveDoc();
-    if (doc === null) {
-        console.log('doc is null');
-        return;
-    }
-    const sig = await Signature.create();
-    let clear = await sig.clearSignatureByName(doc, 'Signature_0');
+    let clear = await sig.clearSignatureByName(doc, _signatureName);
     if (clear) {
         console.log('clearSignatureByName success');
+        clearSignatureInfo.value = 'success';
     } else {
         console.log('clearSignatureByName failed');
+        clearSignatureInfo.value = 'failed';
     }
 }
 
@@ -225,11 +221,29 @@ onMounted(async () => {
 <template>
     <div class="signature-content">
         <n-button class="signature-btn" @click="signatureSign">signatureSign</n-button>
-        <n-button class="signature-btn" @click="signatureSignByName">signatureSignByName</n-button>
-        <n-button class="signature-btn" @click="getSignatureInfoByIndex">getSignatureInfoByIndex</n-button>
-        <n-button class="signature-btn" @click="getSignatureInfoByName">getSignatureInfoByName</n-button>
-        <n-button class="signature-btn" @click="clearSignatureByIndex">clearSignatureByIndex</n-button>
-        <n-button class="signature-btn" @click="clearSignatureByName">clearSignatureByName</n-button>
+        <n-button class="signature-btn" @click="getSignatureInfo">getSignatureInfo</n-button>
+        <div class="signature-clear">
+            <n-input
+                clearable
+                v-model:value="signatureName"
+                placeholder="请输入你要移除的signatureName，如：Signature_0"
+                :style="{ width: '200px' }"
+            ></n-input>
+            <n-button class="signature-btn" :disabled="!signatureName" @click="clearSignature">clearSignature</n-button>
+        </div>
+        <p v-if="clearSignatureInfo !== ''">
+            clearSignatureInfo: {{ clearSignatureInfo }}
+        </p>
+        <n-divider />
+        <n-data-table
+            :columns="columns"
+            :data="signatureData"
+            :bordered="true"
+        >
+            <template #empty>
+                <div class="empty"></div>
+            </template>
+        </n-data-table>
     </div>
 </template>
 
@@ -239,6 +253,11 @@ onMounted(async () => {
     .signature-btn {
         margin-top: 10px;
         margin-left: 10px;
+    }
+    .signature-clear {
+        display: flex;
+        justify-content: center;
+        align-items: baseline;
     }
 }
 </style>
