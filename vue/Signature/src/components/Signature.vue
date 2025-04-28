@@ -228,6 +228,7 @@ onMounted(async () => {
             <n-input
                 clearable
                 v-model:value="signatureName"
+                title="请输入你要移除的signatureName，如：Signature_0"
                 placeholder="请输入你要移除的signatureName，如：Signature_0"
                 :style="{ width: '200px' }"
             ></n-input>
