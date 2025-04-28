@@ -9,6 +9,7 @@ JavaScript Plug-in Samples 是 JavaScript Plug-in SDK 的配套示例集，直�
 | RibbonBar  | 演示如何在编辑器界面上使用Ribbon按钮进行各种操作的示例。     |
 | SearchText | 演示在PDF文件中搜索特定文本并高亮显示结果的操作示例。        |
 | Document   | 演示对文档的相关操作，翻页，获取文档权限，关闭保存文档等。 |
+| Signature   | 演示对文档的签名，获取签名列表，删除签名等。 |
 
 在每个示例中，均提供了相应的安装与运行指南。不过，在使用这些示例之前，务必提前完成福昕高级 PDF 编辑器以及 JavaScript 插件管理器插件的安装。
 
