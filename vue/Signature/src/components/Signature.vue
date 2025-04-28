@@ -162,7 +162,7 @@ const getSignatureInfo = async () => {
                 signedPageIndex: info.signedPageIndex,
                 signedReason: info.signedReason,
                 signedTime: info.signedTime,
-                verified: verifyState & DefineConst.FR_SIG_VERIFY_VALID ? 'valid' : 'invalid'
+                verified: !info.signedField ? 'unsigned' : (verifyState & DefineConst.FR_SIG_VERIFY_VALID ? 'valid' : 'invalid')
             });
         } else {
             console.log('getSignatureInfoByIndex failed');
