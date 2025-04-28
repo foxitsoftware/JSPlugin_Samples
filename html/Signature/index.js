@@ -1,15 +1,27 @@
 window.signatureSign = () => {};
-window.signatureSignByName = () => {};
-window.getSignatureInfoByIndex = () => {};
-window.getSignatureInfoByName = () => {};
-window.clearSignatureByIndex = () => {};
-window.clearSignatureByName = () => {};
+window.getSignatureInfo = () => {};
+window.clearSignature = () => {};
 window.onload = async () => {
     // const PluginApp = window.Foxit.PluginApp;
     // const PDFDictionary = window.Foxit.PDFDictionary;
     // const PDFString = window.Foxit.PDFString;
     // const PDFArray = window.Foxit.PDFArray;
-
+    let myTable = $('#myTable').DataTable({
+        paging: false,
+        searching: false,
+        scrollX: true,
+        ordering:  false,
+        info: false,
+        data: [],
+    });
+    // 输入框有值时启用按钮，无值时禁用按钮
+    $('#signatureName').on('input', function() {
+        if ($(this).val() !== '') {
+            $('#clearSignatureBtn').removeAttr('disabled');
+        } else {
+            $('#clearSignatureBtn').attr('disabled', 'disabled');
+        }
+    });
     const {
         PluginApp,
         Signature,
@@ -27,6 +39,7 @@ window.onload = async () => {
         }
     });
     window.signatureSign = async () => {
+        $('#signatureInfo').hide();
         doc = await app.getActiveDoc();
         const sig = await Signature.create();
         const signatureInfo = {
@@ -88,132 +101,84 @@ window.onload = async () => {
         let bSign = await sig.signatureSign(signatureInfo, signaturePosInfo, {}, true);
         console.log('bSign', bSign);
     }
-    window.signatureSignByName = async () => {
+    window.getSignatureInfo = async () => {
+        $('#signatureInfo').hide();
+        myTable.destroy();
         doc = await app.getActiveDoc();
         if (doc === null) {
             console.log('doc is null');
             return;
         }
-        const sig = await Signature.create();
-        const signatureInfo = {
-            signAuthor: 'John Doe',
-            organizationName: 'foxit',
-            organizationalInfo: 'Software Development',
-            emailAddress: 'john.doe@example.com',
-            countryOrRegionInfo: 'United States',
-            executeSign: true,
-            // 按标准样式显示外观，如果要按图标的方式显示外观，那这里需要设置为false
-            useStandAppearance : false,
-            // 按标准样式显示外观
-            showFlag: DefineConst.FR_SIG_SHOW_ALL,
-            iconType: Enum.FR_SG_ICONTYPE.FR_SGIT_NAME,
-            // 要显示图片的需要这样设置
-            // showFlag: 0,
-            // iconType: Enum.FR_SG_ICONTYPE.FR_SGIT_GRAPHICS,
-            // imagePath: 'd:\\test\\signature.png',
-            // imageOpacity: 100,
-            password: '123456',
-            permissionType: Enum.FR_SG_PERMISSION.FR_APG_NONE,
-            textDir: Enum.FR_SG_TEXTDIR.FR_SGTD_AUTO,
-            certFile: 'd:\\test\\John Doe.pfx',
-            signDictInfo: {
-                name: 'John Doe',
-                reason: 'signature test',
-                location: 'New York',
-                filter: 'Adobe.PPKLite'
-            }
-        };
-        let bSign = await sig.signatureSignByName('Signature_0', doc, signatureInfo, 'd:\\test\\signed.pdf', true);
-        console.log('bSign', bSign);
-    }
-    window.getSignatureInfoByIndex = async () => {
-        doc = await app.getActiveDoc();
-        if (doc === null) {
-            console.log('doc is null');
-            return;
-        }
+        const data = [];
         const sig = await Signature.create();
         let count = await sig.getDocSignatureCount(doc);
         console.log('getSignatureInfoByIndex: ', count);
         for (let i = 0; i < count; i++) {
             let info = await sig.getSignatureInfoByIndex(doc, i);
             if (info) {
-                console.log('getSignatureInfoByIndex: ', info);
+                console.log('SignatureBaseInfo: ', info);
                 // @ts-ignore
                 let verifyState = info.verifyState;
-                if( verifyState & DefineConst.FR_SIG_VERIFY_VALID ) {
-                    console.log('Signature is valid');
-                } else {
-                    console.log('Signature is invalid');
-                }
+                data.push({
+                    signatureName: info.signatureName,
+                    signedAuthorName: info.signedAuthorName,
+                    signedCertName: info.signedCertName,
+                    signedField: info.signedField,
+                    signedLocation: info.signedLocation,
+                    signedPageIndex: info.signedPageIndex,
+                    signedReason: info.signedReason,
+                    signedTime: info.signedTime,
+                    verified: verifyState & DefineConst.FR_SIG_VERIFY_VALID ? 'valid' : 'invalid'
+                });
             } else {
                 console.log('getSignatureInfoByIndex failed');
             }
         }
+        myTable = $('#myTable').DataTable({
+            paging: false,
+            searching: false,
+            scrollX: true,
+            ordering:  false,
+            info: false,
+            columns: [
+                { data: 'signatureName' },
+                { data: 'signedAuthorName' },
+                { data: 'signedCertName' },
+                { data: 'signedField' },
+                { data: 'signedLocation' },
+                { data: 'signedPageIndex' },
+                { data: 'signedReason' },
+                { data: 'signedTime' },
+                { data: 'verified' }
+            ],
+            data: data
+        });
     }
-    window.getSignatureInfoByName = async () => {
+    window.clearSignature = async () => {
+        const signatureName = $('#signatureName').val();
+        if (
+            signatureName === ''
+            || signatureName === undefined
+            || signatureName === null) {
+            console.log('signatureName is empty');
+            return;
+        }
         doc = await app.getActiveDoc();
         if (doc === null) {
             console.log('doc is null');
             return;
         }
         const sig = await Signature.create();
-        let info = await sig.getSignatureInfoByName(doc, 'Signature_0');
-        if (info) {
-            console.log('SignatureBaseInfo: ', info);
-            // @ts-ignore
-            let verifyState = info.verifyState || 0;
-            if( verifyState & DefineConst.FR_SIG_VERIFY_VALID ) {
-                console.log('Signature is valid');
-            } else {
-                console.log('Signature is invalid');
-            }
-        } else {
-            console.log('getSignatureInfo failed');
-        }
-    }
-
-    window.clearSignatureByIndex = async () => {
-        doc = await app.getActiveDoc();
-        if (doc === null) {
-            console.log('doc is null');
-            return;
-        }
-        const sig = await Signature.create();
-        let count = await sig.getDocSignatureCount(doc);
-        console.log('getSignatureInfoByIndex: ', count);
-        for (let i = 0; i < count; i++) {
-            let info = await sig.getSignatureInfoByIndex(doc, i);
-            if (info) {
-                console.log('getSignatureInfoByIndex: ', info);
-                // @ts-ignore
-                if(info.signatureName === 'Signature_0') {
-                    let clear = await sig.clearSignatureByIndex(doc, i);
-                    if (clear) {
-                        console.log('clearSignatureByIndex success');
-                    } else {
-                        console.log('clearSignatureByIndex failed');
-                    }
-                } else{
-                    console.log('Signature_0 is not exist');
-                }
-            } else {
-                console.log('getSignatureInfoByIndex failed');
-            }
-        }
-    }
-    window.clearSignatureByName = async () => {
-        doc = await app.getActiveDoc();
-        if (doc === null) {
-            console.log('doc is null');
-            return;
-        }
-        const sig = await Signature.create();
-        let clear = await sig.clearSignatureByName(doc, 'Signature_0');
+        let clear = await sig.clearSignatureByName(doc, signatureName);
+        let info = '';
         if (clear) {
             console.log('clearSignatureByName success');
+            info = 'success';
         } else {
             console.log('clearSignatureByName failed');
+            info = 'failed';
         }
+        $('#signatureNameInfo').html(info);
+        $('#signatureInfo').show();
     }
 }

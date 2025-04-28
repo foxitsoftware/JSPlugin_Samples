@@ -16,8 +16,10 @@
             padding: 6px;
         }
     </style>
+    <link rel="stylesheet" href="./lib3/dataTables/dataTables.min.css">
     <script src="./lib3/lodash.core.4.17.21.min.js"></script>
-    <!-- <script src="./lib3/jquery.1.12.1.min.js"></script> -->
+    <script src="./lib3/jquery.1.12.1.min.js"></script>
+    <script src="./lib3/dataTables/dataTables.min.js"></script>
 
     <script src="../../../dist/foxit.umd.min.js"></script>
     <!-- <script src="./index.js"></script> -->
@@ -63,6 +65,17 @@
             padding: 10px;
             text-align: left;
         }
+        .signature-clear {
+            display: flex;
+            justify-content: center;
+            align-items: baseline;
+        }
+        #signatureName {
+            width: 200px;
+            height: 20px;
+            padding: 5px;
+            margin-right: 10px;
+        }
     </style>
 </head>
 <body>
@@ -71,11 +84,32 @@
 </div>
 <div class="signature-content">
     <button class="button" onClick="signatureSign()">signatureSign</button>
-    <button class="button" onClick="signatureSignByName()">signatureSignByName</button>
-    <button class="button" onClick="getSignatureInfoByIndex()">getSignatureInfoByIndex</button>
-    <button class="button" onClick="getSignatureInfoByName()">getSignatureInfoByName</button>
-    <button class="button" onClick="clearSignatureByIndex()">clearSignatureByIndex</button>
-    <button class="button" onClick="clearSignatureByName()">clearSignatureByName</button>
+    <button class="button" onClick="getSignatureInfo()">getSignatureInfo</button>
+    <div class="signature-clear">
+        <input type="text" id="signatureName" placeholder="请输入你要移除的signatureName，如：Signature_0" >
+        <button class="button" id="clearSignatureBtn" disabled onClick="clearSignature()">clearSignature</button>
+    </div>
+    <p id="signatureInfo" style="display: none;">
+        clearSignatureInfo: <span id="signatureNameInfo"></span>
+    </p>
+    <table id="myTable" class="display">
+        <thead>
+            <tr>
+                <th>signatureName</th>
+                <th>signedAuthorName</th>
+                <th>signedCertName</th>
+                <th>signedField</th>
+                <th>signedLocation</th>
+                <th>signedPageIndex</th>
+                <th>signedReason</th>
+                <th>signedTime</th>
+                <th>verified</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr></tr>
+        </tbody>
+    </table>
 </div>
 </body>
 </html>
