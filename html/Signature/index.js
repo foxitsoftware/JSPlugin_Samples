@@ -40,6 +40,7 @@ window.onload = async () => {
     });
     window.signatureSign = async () => {
         $('#signatureInfo').hide();
+
         doc = await app.getActiveDoc();
         const sig = await Signature.create();
         const signatureInfo = {
@@ -62,6 +63,8 @@ window.onload = async () => {
             password: '123456',
             permissionType: Enum.FR_SG_PERMISSION.FR_APG_NONE,
             textDir: Enum.FR_SG_TEXTDIR.FR_SGTD_AUTO,
+            // 证书文件路径,请根据实际情况修改，例如：'d:\\test\\John Doe.pfx'，你可以使用这个示例中的John Doe.pfx证书文件
+            // 并且在使用前，请点击安装这个证书
             certFile: 'd:\\test\\John Doe.pfx',
             signDictInfo: {
                 name: 'John Doe',
