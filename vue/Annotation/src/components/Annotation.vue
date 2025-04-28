@@ -24,6 +24,7 @@ const createHighlightAnnot = async () => {
     }
     let pageView = await docView.getCurrentPageView();
     console.log(pageView);
+    const pageIndex = await pageView.getPageIndex();
 
     let fpdObject = await PDFDictionary.create();
     let fpdfstringAnnot = await PDFString.create({ "str": "Annot" });
@@ -54,7 +55,7 @@ const createHighlightAnnot = async () => {
     await fpdObject.addValue('Contents', fpdfstringPopout);
     await fpdObject.setAtRect('Rect', rectFirst);
     await pageView.addAnnot(fpdObject, 0);
-    doc.reloadPage();
+    doc.reloadPage(pageIndex);
 
 }
 
@@ -69,6 +70,7 @@ const deleteHighlightAnnot = async () => {
     }
     let pageView = await docView.getCurrentPageView();
     console.log(pageView);
+    const pageIndex = await pageView.getPageIndex();
     let count = await pageView.getAnnotCount();
     console.log(count);
     for (let i = 0; i < count; i++) {
@@ -78,7 +80,7 @@ const deleteHighlightAnnot = async () => {
             await pageView.deleteAnnot(annot);
         }
     }
-    doc.reloadPage();
+    doc.reloadPage(pageIndex);
 }
 
 const modifyHightlightAnnot = async () => {
@@ -91,6 +93,7 @@ const modifyHightlightAnnot = async () => {
         throw new Error('docView is null');
     }
     let pageView = await docView.getCurrentPageView();
+    const pageIndex = await pageView.getPageIndex();
     console.log(pageView);
     let count = await pageView.getAnnotCount();
     console.log(count);
@@ -105,7 +108,7 @@ const modifyHightlightAnnot = async () => {
             await obj.setAtString('Contents', 'This is modified text for the highlight annotation');
         }
     }
-    doc.reloadPage();
+    doc.reloadPage(pageIndex);
 }
 
 // vue的生命周期, 在组件挂载完成后执行

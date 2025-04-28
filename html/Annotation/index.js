@@ -36,7 +36,7 @@ window.onload = async () => {
         }
         let pageView = await docView.getCurrentPageView();
         console.log(pageView);
-
+        const pageIndex = await pageView.getPageIndex();
         let fpdObject = await PDFDictionary.create();
         let fpdfstringAnnot = await PDFString.create({ "str": "Annot" });
         await fpdObject.addValue('Type', fpdfstringAnnot);
@@ -66,7 +66,7 @@ window.onload = async () => {
         await fpdObject.addValue('Contents', fpdfstringPopout);
         await fpdObject.setAtRect('Rect', rectFirst);
         await pageView.addAnnot(fpdObject, 0);
-        doc.reloadPage();
+        doc.reloadPage(pageIndex);
     }
 
     window.deleteHighlightAnnot = async () => {
@@ -80,6 +80,7 @@ window.onload = async () => {
         }
         let pageView = await docView.getCurrentPageView();
         console.log(pageView);
+        const pageIndex = await pageView.getPageIndex();
         let count = await pageView.getAnnotCount();
         console.log(count);
         for (let i = 0; i < count; i++) {
@@ -89,7 +90,7 @@ window.onload = async () => {
                 await pageView.deleteAnnot(annot);
             }
         }
-        doc.reloadPage();
+        doc.reloadPage(pageIndex);
     }
 
     window.modifyHightlightAnnot = async () => {
@@ -103,6 +104,7 @@ window.onload = async () => {
         }
         let pageView = await docView.getCurrentPageView();
         console.log(pageView);
+        const pageIndex = await pageView.getPageIndex();
         let count = await pageView.getAnnotCount();
         console.log(count);
         for (let i = 0; i < count; i++) {
@@ -116,6 +118,6 @@ window.onload = async () => {
                 await obj.setAtString('Contents', 'This is modified text for the highlight annotation');
             }
         }
-        doc.reloadPage();
+        doc.reloadPage(pageIndex);
     }
 }
