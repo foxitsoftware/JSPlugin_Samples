@@ -75,11 +75,11 @@ const signatureSign = async () => {
     doc = await app.getActiveDoc();
     const sig = await Signature.create();
     const signatureInfo = {
-        signAuthor: 'John Doe',
-        organizationName: 'foxit',
-        organizationalInfo: 'Software Development',
-        emailAddress: 'john.doe@example.com',
-        countryOrRegionInfo: 'United States',
+        signAuthor: 'Foxit JSPlugin SDK',
+        organizationName: 'Foxit',
+        organizationalInfo: 'Foxit Software Development',
+        emailAddress: 'support@foxitsoftware.com',
+        countryOrRegionInfo: 'China',
         executeSign: true,
         // 按标准样式显示外观，如果要按图标的方式显示外观，那这里需要设置为false
         useStandAppearance : false,
@@ -94,13 +94,13 @@ const signatureSign = async () => {
         password: '123456',
         permissionType: Enum.FR_SG_PERMISSION.FR_APG_NONE,
         textDir: Enum.FR_SG_TEXTDIR.FR_SGTD_AUTO,
-        // 证书文件路径,请根据实际情况修改，例如：'d:\\test\\John Doe.pfx'，你可以使用这个示例中的John Doe.pfx证书文件
+        // 证书文件路径,请根据实际情况修改，例如：'d:\\test\\foxit.pfx'，你可以使用这个示例中的foxit.pfx证书文件
         // 并且在使用前，请点击安装这个证书
-        certFile: 'd:\\test\\John Doe.pfx',
+        certFile: 'd:\\test\\foxit.pfx',
         signDictInfo: {
-            name: 'John Doe',
-            reason: 'signature test',
-            location: 'New York',
+            name: 'Foxit JSPlugin SDK',
+            reason: 'As a Signature Sample',
+            location: 'Fuzhou',
             filter: 'Adobe.PPKLite'
         }
     };
