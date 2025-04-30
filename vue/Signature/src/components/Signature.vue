@@ -63,11 +63,6 @@ const columns = ref([
         title: 'signedTime',
         key: 'signedTime',
         width: 100,
-    },
-    {
-        title: 'verified',
-        key: 'verified',
-        width: 100,
     }
 ]);
 const signatureSign = async () => {
@@ -151,8 +146,6 @@ const getSignatureInfo = async () => {
         let info = await sig.getSignatureInfoByIndex(doc, i);
         if (info) {
             console.log('SignatureBaseInfo: ', info);
-            // @ts-ignore
-            let verifyState = info.verifyState;
             signatureData.value.push({
                 signatureName: info.signatureName,
                 signedAuthorName: info.signedAuthorName,
@@ -166,18 +159,6 @@ const getSignatureInfo = async () => {
         } else {
             console.log('getSignatureInfoByIndex failed');
         }
-        // if (info) {
-        //     console.log('SignatureBaseInfo: ', info);
-        //     // @ts-ignore
-        //     let verifyState = info.verifyState;
-        //     if( verifyState & DefineConst.FR_SIG_VERIFY_VALID ) {
-        //         console.log('Signature is valid');
-        //     } else {
-        //         console.log('Signature is invalid');
-        //     }
-        // } else {
-        //     console.log('getSignatureInfoByIndex failed');
-        // }
     }
 }
 

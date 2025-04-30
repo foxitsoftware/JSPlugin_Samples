@@ -120,8 +120,6 @@ window.onload = async () => {
             let info = await sig.getSignatureInfoByIndex(doc, i);
             if (info) {
                 console.log('SignatureBaseInfo: ', info);
-                // @ts-ignore
-                let verifyState = info.verifyState;
                 data.push({
                     signatureName: info.signatureName,
                     signedAuthorName: info.signedAuthorName,
@@ -150,8 +148,7 @@ window.onload = async () => {
                 { data: 'signedLocation' },
                 { data: 'signedPageIndex' },
                 { data: 'signedReason' },
-                { data: 'signedTime' },
-                { data: 'verified' }
+                { data: 'signedTime' }
             ],
             data: data
         });
