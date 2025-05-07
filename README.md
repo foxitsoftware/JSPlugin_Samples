@@ -34,6 +34,6 @@ JavaScript插件管理器（JavaScript Plug-in Manager）插件负责管理JavaS
 
 ![图 3](./img/3.png)
 
-4. 重启福昕高级PDF编辑器后打开 “福昕插件”，就会看到 JavaScript插件管理器 插件已经成功安装，点击 “安装JS插件” 按钮即可。
+4. 重启福昕高级PDF编辑器后打开 “福昕插件”，就会看到 JavaScript插件管理器 插件已经成功安装，点击 “安装插件(P)” 按钮即可。
 
 ![图 4](./img/4.png)
