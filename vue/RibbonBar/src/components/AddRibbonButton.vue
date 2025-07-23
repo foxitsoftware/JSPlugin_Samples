@@ -159,7 +159,7 @@ const categoryCopyPanel = async () => {
     ribbonBar.reCalcLayout();
 }
 
-const panelCopyElementToPanel = async() =>{
+const panelCopyElementToPanel = async() => {
     let ribbonBar = await app.getRibbonBar();
     console.log('app.getRibbonBar', ribbonBar);
     let category = await ribbonBar.getActiveCategory();
