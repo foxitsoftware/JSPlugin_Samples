@@ -54,9 +54,9 @@ interface CommonPropertiesType {
 }
 
 const commonProperties = ref<CommonPropertiesType>({
-    width: 100,
-    height: 100,
-    opacity: 100,
+    width: 0,
+    height: 0,
+    opacity: 0,
     rotation: 0,
     x: 0,
     y: 0
@@ -232,6 +232,11 @@ const hexToRgbArray = (hex: string): number[] => {
     return defaultColor;
 };
 
+const handleColorPreview = (value: string) => {
+    textProperties.value.color = value;
+    console.log('颜色预览:', value);
+};
+
 const handleColorChange = async (value: string) => {
     textProperties.value.color = value;
     // 转换为 RGB 数组
@@ -267,7 +272,8 @@ const applyTextProperty = async (property: string, value: any) => {
                     await textObjectUtils.setFontSize(graphicObjectUtils, value);
                     break;
                 case 'color':
-                    await textObjectUtils.setStrokeInfo(graphicObjectUtils, true, value,true);
+                    console.log('设置颜色 RGB 数组:', value);
+                    await textObjectUtils.setStrokeInfo(graphicObjectUtils, true, value, true);
                     break;
                 case 'isBold':
                     // await graphicObjectUtils.setBold(value);
@@ -346,50 +352,30 @@ const isObjectSelected = ref(false);
 let pollInterval: number | null = null;
 const POLL_INTERVAL_MS = 500; // 根据需求调整
 
+// 检查 graphicObjectUtils 是否有效
+const isGraphicObjectValid = (utils: any): boolean => {
+    if (!utils) return false;
+    // 检查内部结构
+    if (utils.$graphicObjectUtils && utils.$graphicObjectUtils.value) {
+        const innerValue = utils.$graphicObjectUtils.value;
+        // 检查 value 是否为空
+        return innerValue !== '' && innerValue.uuid !== '';
+    }
+    return false;
+};
+
 // 获取选中对象属性
 const getSelectedObjectProperties = async () => {
   if (!pageEditor) return;
 
   try {
-    //const currentSelection = await pageEditor.getSelection();
-    graphicObjectUtils = await pageEditor.editGetSelectedGraphObjectUtils();
-    console.log('graphicObjectUtils', graphicObjectUtils);
+    let graphicObjectUtils = await pageEditor.editGetSelectedGraphObjectUtils();
+    //console.log('graphicObjectUtils', graphicObjectUtils);
     // 选中状态发生变化时
-    if (_.isEmpty(graphicObjectUtils)) {
+
+    if (isGraphicObjectValid(graphicObjectUtils) === false) {
         console.log('没有选中对象');
-        return;
-    }
-
-    if (_.isEmpty(graphicObjectUtils) === false) {
-        const objectType = await graphicObjectUtils.getType();
-
-        if(objectType === Enum.FPD_GraphicObjectUtilsType.FSGraphicUtilsType_kText){
-            currentObjectType.value = 'Text';
-        } else if(objectType === Enum.FPD_GraphicObjectUtilsType.FSGraphicUtilsType_kPath){
-            currentObjectType.value = 'Path';
-        } else if(objectType === Enum.FPD_GraphicObjectUtilsType.FSGraphicUtilsType_kImage){
-            currentObjectType.value = 'Image';
-        } else {
-            currentObjectType.value = 'Other';
-        }
-
-        isObjectSelected.value = true;
-        const width = await graphicObjectUtils.getWidth();
-        const height = await graphicObjectUtils.getHeight();
-        const opacity = await graphicObjectUtils.getOpacity();
-        const x = await graphicObjectUtils.getXPosition();
-        const y = await graphicObjectUtils.getYPosition();
-        //const rotate = await graphicObjectUtils.getRotation();
-        // 更新commonProperties
-        commonProperties.value.width = width;
-        commonProperties.value.height = height;
-        commonProperties.value.opacity = opacity;
-        commonProperties.value.x = x;
-        commonProperties.value.y = y;
-        //commonProperties.value.rotation = rotate;
-        console.log('获取对象属性:', commonProperties.value);
-    } else if (isObjectSelected.value) {
-      // 选择被清空
+         // 选择被清空
       isObjectSelected.value = false;
       selectedObject.value = null;
       currentObjectType.value = 'Other';
@@ -400,7 +386,43 @@ const getSelectedObjectProperties = async () => {
       commonProperties.value.opacity = 0;
       commonProperties.value.x = 0;
       commonProperties.value.y = 0;
+        return;
     }
+
+    const objectType = await graphicObjectUtils.getType();
+
+    if(objectType === Enum.FPD_GraphicObjectUtilsType.FSGraphicUtilsType_kText){
+        currentObjectType.value = 'Text';
+        const fontSize = await textObjectUtils.getFontSize(graphicObjectUtils);
+        textProperties.value.fontSize = fontSize;
+        //const fontInfo = await textObjectUtils.getFont(graphicObjectUtils);
+        //textProperties.value.fontFamily = fontInfo;
+
+    } else if(objectType === Enum.FPD_GraphicObjectUtilsType.FSGraphicUtilsType_kPath){
+        currentObjectType.value = 'Path';
+    } else if(objectType === Enum.FPD_GraphicObjectUtilsType.FSGraphicUtilsType_kImage){
+         currentObjectType.value = 'Image';
+    } else {
+         currentObjectType.value = 'Other';
+    }
+
+    isObjectSelected.value = true;
+    const width = await graphicObjectUtils.getWidth();
+    const height = await graphicObjectUtils.getHeight();
+    const opacity = await graphicObjectUtils.getOpacity();
+    const x = await graphicObjectUtils.getXPosition();
+    const y = await graphicObjectUtils.getYPosition();
+    //const rotate = await graphicObjectUtils.getRotation();
+    // 更新commonProperties
+    commonProperties.value.width = width;
+    commonProperties.value.height = height;
+    commonProperties.value.opacity = opacity;
+    commonProperties.value.x = x;
+    commonProperties.value.y = y;
+    //commonProperties.value.rotation = rotate;
+    //console.log('获取对象属性:', commonProperties.value);
+
+
   } catch (error) {
     console.error('获取对象属性失败:', error);
   }
@@ -419,17 +441,99 @@ const stopPolling = () => {
   }
 };
 
+const keyEventMessage = ref<string>('');
+
+const registerSelectionHandler = async () => {
+    if (!app) return;
+    if (selectionHandler) {
+        console.log('SelectionHandler 已经注册，无需重复注册');
+        return;
+    }
+
+    const callbacks = {
+        // @ts-ignore
+        onSelectionKeyDown: (clientData: any, doc: any, curSelectData: any, keyInfoData: any) => {
+            keyEventMessage.value = '';
+            console.log('onSelectionKeyDown', keyInfoData);
+            try {
+                // 解析 JSON 字符串
+                if (typeof keyInfoData === 'string') {
+                    const keyData = JSON.parse(keyInfoData);
+                    console.log('解析后的键盘数据:', keyData);
+ 
+                    if (keyData && keyData.keyName) {
+                        // 使用解析后的对象
+                        const {fullName } = keyData;
+                        keyEventMessage.value = `${fullName}`;
+                        console.log('设置键盘消息成功:', keyEventMessage.value);
+                    } else {
+                        keyEventMessage.value = 'No key name in parsed data';
+                    }
+                } else {
+                    keyEventMessage.value = ``;
+                }
+            } catch (error) {
+                console.error('JSON 解析错误:', error);
+                keyEventMessage.value = '';
+            }
+            return true;
+        },
+        // @ts-ignore
+        onSelectionKeyUp: (clientData: any, doc: any, curSelectData: any, keyInfoData: any) => {
+            //keyEventMessage.value = `KeyCode: ${keyInfoData.keyName}, CharCode: ${keyInfoData.fullName}`;
+            keyEventMessage.value = '';
+            console.log('onSelectionKeyUp', keyInfoData);
+            try {
+                // 解析 JSON 字符串
+                if (typeof keyInfoData === 'string') {
+                    const keyData = JSON.parse(keyInfoData);
+                    console.log('解析后的键盘数据:', keyData);
+ 
+                    if (keyData && keyData.keyName) {
+                        // 使用解析后的对象
+                        const {fullName } = keyData;
+                        keyEventMessage.value = `${fullName}`;
+                        console.log('设置键盘消息成功:', keyEventMessage.value);
+                    } else {
+                        keyEventMessage.value = 'No key name in parsed data';
+                    }
+                } else {
+                    keyEventMessage.value = ``;
+                }
+            } catch (error) {
+                console.error('JSON 解析错误:', error);
+                keyEventMessage.value = '';
+            }
+            return true;
+        }
+    };
+    selectionHandler = await app.registerSelectionHandlerJs(callbacks);
+    console.log('app.registerSelectionHandlerJs: ', app, selectionHandler);
+};
+
+const clearMessage = () => {
+    keyEventMessage.value = '';
+};
+
+let selectionHandler: any = null;
 // vue的生命周期, 在组件挂载完成后执行
 onMounted(async () => {
+    const tool = await app.getToolByName("Hand");
+    const toolstate = await app.setActiveTool(tool, false);
+    console.log('app.setActiveTool: ', app, toolstate);
+
+    console.log('组件挂载，开始加载Graphic Object Addon并启动轮询');
     let state = await app.loadGraphicObjectAddon();
     console.log('Graphic Object Addon Load State:', state);
     pageEditor = await PageEditor.create();
     textObjectUtils = await TextObjectUtils.create();
+    registerSelectionHandler();
     startPolling();
 });
 
 onUnmounted(() => {
-  stopPolling();
+    console.log('组件卸载，停止轮询');
+    stopPolling();
 });
 </script>
 
@@ -447,78 +551,96 @@ onUnmounted(() => {
             />
         </div>
 
-        <n-card title="" style="margin-bottom: 20px">
+        <n-card title="Common Property" style="margin-bottom: 10px" :header-style="{ fontSize: '12px'}">
             <div style="display: flex; flex-direction: column; gap: 16px;">
                 <div style="display: flex; align-items: center; gap: 12px;">
-                    <span style="width: 80px; font-weight: bold;">Width:</span>
+                    <span style="width: 100px; font-size: 12px; color: #666; font-weight: 500;">Width:</span>
                     <n-input-number
                         :value="commonProperties.width"
+                        :show-button="false"
                         @update:value="handleWidthChange"
-                        :min="1"
+                        :min="0"
                         :max="1000"
+                        size="small"
+                        style="font-size: 10px;"
                     />
                 </div>
 
                 <div style="display: flex; align-items: center; gap: 12px;">
-                    <span style="width: 80px; font-weight: bold;">Height:</span>
+                    <span style="width: 100px; font-size: 12px; color: #666; font-weight: 500;">Height:</span>
                     <n-input-number
                         :value="commonProperties.height"
+                        :show-button="false"
                         @update:value="handleHeightChange"
-                        :min="1"
+                        :min="0"
                         :max="1000"
+                        size="small"
+                        style="font-size: 10px;"
                     />
                 </div>
 
                 <div style="display: flex; align-items: center; gap: 12px;">
-                    <span style="width: 80px; font-weight: bold;">X Position:</span>
+                    <span style="width: 100px; font-size: 12px; color: #666; font-weight: 500;">X Pos:</span>
                     <n-input-number
                         :value="commonProperties.x"
                         @update:value="handleXPositionChange"
+                        :show-button="false"
                         :min="0"
                         :max="1000"
+                        size="small"
+                        style="font-size: 10px;"
                     />
                 </div>
 
                 <div style="display: flex; align-items: center;gap: 12px;">
-                    <span style="width: 80px; font-weight: bold;">Y Position:</span>
+                    <span style="width: 100px; font-size: 12px; color: #666; font-weight: 500;">Y Pos:</span>
                     <n-input-number
                         :value="commonProperties.x"
                         @update:value="handleYPositionChange"
+                        :show-button="false"
                         :min="0"
                         :max="1000"
+                        size="small"
+                        style="font-size: 10px;"
                     />
                 </div>
 
                 <div style="display: flex; align-items: center;gap: 12px;">
-                    <span style="width: 80px; font-weight: bold;">Opacity:</span>
+                    <span style="width: 100px; font-size: 12px; color: #666; font-weight: 500;">Opacity:</span>
                     <n-input-number
                         :value="commonProperties.opacity"
+                        :show-button="false"
                         @update:value="handleOpacityChange"
                         :min="0"
                         :max="100"
+                        size="small"
+                        style="font-size: 10px;"
                     />
                 </div>
 
-                <div style="display: flex; align-items: center;gap: 12px;">
-                    <span style="width: 80px; font-weight: bold;">Rotate:</span>
+                <!-- <div style="display: flex; align-items: center;gap: 12px;">
+                    <span style="width: 100px; font-size: 12px; color: #666; font-weight: 500;">Rotate:</span>
                     <n-input-number
                         :value="commonProperties.rotation"
+                        :show-button="false"
                         @update:value="handleRotateChange"
                         :min="0"
                         :max="360"
+                        size="small"
+                        style="font-size: 10px;"
                     />
-                </div>
+                </div> -->
             </div>
         </n-card>
 
         <!-- 文本属性 - 只在选中文本对象时显示 -->
-         <n-card v-if="currentObjectType === 'Text'" title="" style="margin-bottom: 20px">
+         <n-card v-if="currentObjectType === 'Text'" title="Text Property" style="margin-bottom: 20px" :header-style="{ fontSize: '12px'}">
             <div style="display: flex; flex-direction: column; gap: 16px;">
                 <!-- 字体和字号 -->
                 <div style="display: flex; align-items: center; gap: 12px;">
-                    <span style="width: 100px; font-weight: bold;">Font Family:</span>
+                    <span style="width: 100px; font-size: 12px; color: #666; font-weight: 500;">Font Family:</span>
                     <n-select
-                        style="flex: 1"
+                        style="flex: 1; min-width: 120px;"
                         :value="textProperties.fontFamily"
                         @update:value="handleFontFamilyChange"
                         :options="fontFamilyOptions"
@@ -527,40 +649,64 @@ onUnmounted(() => {
                 </div>
 
                 <div style="display: flex; align-items: center; gap: 12px;">
-                    <span style="width: 100px; font-weight: bold;">Font Size:</span>
+                    <span style="width: 100px; font-size: 12px; color: #666; font-weight: 500;">Font Size:</span>
                     <n-input-number
                         :value="textProperties.fontSize"
+                        :show-button="false"
                         @update:value="handleFontSizeChange"
                         :min="8"
                         :max="72"
+                        size="small"
+                        style="font-size: 10px;"
                     />
                 </div>
 
                 <div style="display: flex; align-items: center; gap: 12px;">
-                    <span style="width: 100px; font-weight: bold;">Color:</span>
+                    <span style="width: 100px; font-size: 12px; color: #666; font-weight: 500;">Color:</span>
                     <n-color-picker
                         :value="textProperties.color"
-                        @update:value="handleColorChange"
+                        @update:value="handleColorPreview"
+                        @confirm="handleColorChange"
                         :modes="['hex']"
                         :show-alpha="false"
+                        :actions="['confirm']"
+                        :swatches="[
+                            '#000000', '#FFFFFF', '#FF0000', '#00FF00', '#0000FF',
+                            '#FFFF00', '#00FFFF', '#FF00FF', '#FFA500', '#800080',
+                            '#008000', '#800000', '#008080', '#000080', '#808080'
+                        ]"
+                        size="small"
                         style="width: 120px;"
                     />
-                    <span style="color: #666; font-size: 12px;">{{ textProperties.color }}</span>
+                    <div
+                        :style="{
+                            width: '24px',
+                            height: '24px',
+                            backgroundColor: textProperties.color,
+                            border: '1px solid #ddd',
+                            borderRadius: '4px'
+                        }"
+                    ></div>
                 </div>
-
-                 <!-- <div style="display: flex; align-items: center; gap: 12px;">
-                    <span style="width: 100px; font-weight: bold;">Font Style:</span>
-                    <n-select
-                        style="flex: 1"
-                        :value="currentFontStyle"
-                        @update:value="handleFontStyleChange"
-                        :options="fontStyleOptions"
-                        placeholder="Select Font Style"
-                    />
-                </div> -->
-
-                <!-- 移除了 Text Align, Letter Spacing, Line Height 的相关控件 -->
             </div>
         </n-card>
+
+        <!-- 加一个控件显示selection keydown ,up的按键的信息 -->
+        <n-card title="Key Events Message" style="margin-bottom: 20px" :header-style="{ fontSize: '12px'}">
+            <div style="display: flex; align-items: center; gap: 8px; min-height: 32px;">
+                <span style="font-size: 12px; color: #666; min-width: 60px;">Current Enter Key:</span>
+                <n-tag v-if="keyEventMessage" size="small" type="info">
+                    {{ keyEventMessage }}
+                </n-tag>
+                <span v-else style="color: #999; font-size: 12px;">
+                    No key pressed
+                </span>
+                <!-- <n-button size="small" @click="clearMessage" type="primary" text style="margin-left: auto;">
+                    Clear
+                </n-button> -->
+            </div>
+        </n-card>
+
+        <!-- <n-button @click="registerSelectionHandler">Register SelectionHandler</n-button> -->
     </div>
 </template>
