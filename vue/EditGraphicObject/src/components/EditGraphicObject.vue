@@ -5,7 +5,8 @@ import {
     onUnmounted,
     getCurrentInstance,
     ref,
-    watch
+    watch,
+    computed
 } from 'vue';
 
 import
@@ -28,9 +29,15 @@ import {
 const { proxy }: any = getCurrentInstance();
 const app = (proxy as { $pluginApp: any }).$pluginApp;
 
+//全局变量
 let pageEditor: PageEditorType | null;
 let graphicObjectUtils: GraphicObjectUtilsType | null;
 let textObjectUtils: TextObjectUtilsType | null;
+const selectedEditType = ref('Edit Object');
+const currentObjectType = ref<string>('');
+// 操作状态标志
+let isApplyingProperty = false;
+
 // 编辑类型选择框的选项
 const editTypeOptions = [
     { label: 'Edit Object', value: 'Edit Object' },
@@ -39,11 +46,7 @@ const editTypeOptions = [
     { label: 'Edit Path', value: 'path' },
     { label: 'Edit Image', value: 'image' }
 ];
-
-// 当前选中的编辑类型
-const selectedEditType = ref('Edit Object');
-const currentObjectType = ref<string>('');
-
+//通用属性
 interface CommonPropertiesType {
     width: number;
     height: number;
@@ -122,17 +125,14 @@ const handleOpacityChange = async (value: number | null) => {
     await handlePropertyChange('opacity', value);
 };
 
-const handleRotateChange = async (value: number | null) => {
-    if (value === null) return;
-    await handlePropertyChange('rotation', value);
-};
-
 const applySingleProperty = async (property: string, value: number) => {
     if (pageEditor) {
+        isApplyingProperty = true;
         console.log(`应用属性 ${property}: ${value}`);
         graphicObjectUtils = await pageEditor.editGetSelectedGraphObjectUtils();
         if (_.isEmpty(graphicObjectUtils)) {
             console.error('graphicObjectUtils is null');
+            isApplyingProperty = false;
             return;
         }
 
@@ -163,20 +163,11 @@ const applySingleProperty = async (property: string, value: number) => {
         } catch (error) {
             console.error(`设置属性 ${property} 失败:`, error);
         }
+        isApplyingProperty = false;
     }
 };
 
 //文本属性变化的设置
-const handleBoldChange = async (value: boolean) => {
-    textProperties.value.isBold = value;
-    await applyTextProperty('isBold', value);
-};
-
-const handleItalicChange = async (value: boolean) => {
-    textProperties.value.isItalic = value;
-    await applyTextProperty('isItalic', value);
-};
-
 const handleFontFamilyChange = async (value: string) => {
     textProperties.value.fontFamily = value;
     await applyTextProperty('fontFamily', value);
@@ -188,6 +179,7 @@ const handleFontSizeChange = async (value: number | null) => {
     await applyTextProperty('fontSize', value);
 };
 
+//HEX 颜色字符串转RGB数组
 const hexToRgbArray = (hex: string): number[] => {
     // 默认黑色
     const defaultColor = [0, 0, 0];
@@ -232,28 +224,64 @@ const hexToRgbArray = (hex: string): number[] => {
     return defaultColor;
 };
 
+//RGB数组转 HEX 颜色字符串
+const rgbArrayToHex = (rgbArray: number[]): string => {
+    if (!rgbArray || rgbArray.length < 3) {
+        return '#000000'; // 默认黑色
+    }
+    const [r, g, b] = rgbArray;
+
+    // 确保数值在 0-255 范围内
+    const clamp = (value: number) => Math.max(0, Math.min(255, value));
+
+    const hexR = clamp(r).toString(16).padStart(2, '0');
+    const hexG = clamp(g).toString(16).padStart(2, '0');
+    const hexB = clamp(b).toString(16).padStart(2, '0');
+
+    return `#${hexR}${hexG}${hexB}`.toUpperCase();
+};
+
+// 分离的颜色状态
+const displayedColor = ref('#000000'); // 显示的颜色
+const actualColor = ref('#000000');    // 实际对象的颜色
+const isColorDifferent = computed(() => displayedColor.value !== actualColor.value);
+
 const handleColorPreview = (value: string) => {
-    textProperties.value.color = value;
-    console.log('颜色预览:', value);
+    displayedColor.value = value; // 只更新显示颜色
 };
 
 const handleColorChange = async (value: string) => {
-    textProperties.value.color = value;
-    // 转换为 RGB 数组
-    const rgbArray = hexToRgbArray(value);
-    console.log(`颜色转换: ${value} -> RGB数组[${rgbArray.join(', ')}]`);
+    displayedColor.value = value;
+    actualColor.value = value;
 
+    const rgbArray = hexToRgbArray(value);
     await applyTextProperty('color', rgbArray);
 };
 
-// 移除 handleTextAlignChange, handleLetterSpacingChange, handleLineHeightChange
+
+// const handleColorPreview = (value: string) => {
+//     textProperties.value.color = value;
+//     console.log('颜色预览:', value);
+// };
+
+// const handleColorChange = async (value: string) => {
+//     isApplyingProperty = true;
+//     textProperties.value.color = value;
+//     // 转换为 RGB 数组
+//     const rgbArray = hexToRgbArray(value);
+//     console.log(`颜色转换: ${value} -> RGB数组[${rgbArray.join(', ')}]`);
+
+//     await applyTextProperty('color', rgbArray);
+// };
 
 // 应用文本属性
 const applyTextProperty = async (property: string, value: any) => {
     if (pageEditor) {
+        isApplyingProperty = true;
         graphicObjectUtils = await pageEditor.editGetSelectedGraphObjectUtils();
         if (_.isEmpty(graphicObjectUtils)) {
             console.error('graphicObjectUtils is null');
+            isApplyingProperty = false;
             return;
         }
         console.log(`应用文本属性 ${property}: ${value}`);
@@ -274,6 +302,7 @@ const applyTextProperty = async (property: string, value: any) => {
                 case 'color':
                     console.log('设置颜色 RGB 数组:', value);
                     await textObjectUtils.setStrokeInfo(graphicObjectUtils, true, value, true);
+                    //textProperties.value.color = rgbArrayToHex(value);
                     break;
                 case 'isBold':
                     // await graphicObjectUtils.setBold(value);
@@ -288,69 +317,34 @@ const applyTextProperty = async (property: string, value: any) => {
         } catch (error) {
             console.error(`设置文本属性 ${property} 失败:`, error);
         }
+        isApplyingProperty = false;
     }
 };
 
 
-// 处理选择框变化
-const handleEditTypeChange = (value: string) => {
-    console.log('Selected edit type:', value);
+// 处理对象选择框变化
+const handleEditTypeChange = async(value: string) => {
+    if(!pageEditor) return;
     // 根据选择的类型执行不同的操作
     switch (value) {
         case 'text':
-            editTextObject();
+            await pageEditor.editActivatePageEditor(DefineConst.FPD_PAGEOBJ_TEXT);
             break;
         case 'path':
-            editPathObject();
+            await pageEditor.editActivatePageEditor(DefineConst.FPD_PAGEOBJ_PATH);
             break;
         case 'image':
-            editImageObject();
+            await pageEditor.editActivatePageEditor(DefineConst.FPD_PAGEOBJ_IMAGE);
             break;
         case 'all':
-            editAllObjects();
+            await pageEditor.editActivatePageEditor(-1);
             break;
     }
 };
-
-// 编辑TextObject
-const editTextObject = async () => {
-    if (pageEditor) {
-        await pageEditor.editActivatePageEditor(DefineConst.FPD_PAGEOBJ_TEXT);
-    }
-    console.log('Editing Text Object');
-};
-
-// 编辑PathObject
-const editPathObject = async () => {
-    if (pageEditor) {
-        await pageEditor.editActivatePageEditor(DefineConst.FPD_PAGEOBJ_PATH);
-    }
-    console.log('Editing Path Object');
-};
-
-// 编辑ImageObject
-const editImageObject = async () => {
-    if (pageEditor) {
-        await pageEditor.editActivatePageEditor(DefineConst.FPD_PAGEOBJ_IMAGE);
-    }
-    console.log('Editing Image Object');
-};
-
-// 编辑所有对象
-const editAllObjects = async () => {
-    if (pageEditor) {
-        await pageEditor.editActivatePageEditor(-1);
-    }
-    console.log('Editing All Objects');
-};
-
-// 选中状态和属性
-const selectedObject = ref<any>(null);
-const isObjectSelected = ref(false);
 
 // 轮询相关
 let pollInterval: number | null = null;
-const POLL_INTERVAL_MS = 500; // 根据需求调整
+const POLL_INTERVAL_MS = 1000; // 根据需求调整
 
 // 检查 graphicObjectUtils 是否有效
 const isGraphicObjectValid = (utils: any): boolean => {
@@ -367,20 +361,15 @@ const isGraphicObjectValid = (utils: any): boolean => {
 // 获取选中对象属性
 const getSelectedObjectProperties = async () => {
   if (!pageEditor) return;
+  if(isApplyingProperty) {
+      console.log('正在应用属性，跳过本次轮询');
+      return;
+  }
 
   try {
-    let graphicObjectUtils = await pageEditor.editGetSelectedGraphObjectUtils();
-    //console.log('graphicObjectUtils', graphicObjectUtils);
-    // 选中状态发生变化时
-
-    if (isGraphicObjectValid(graphicObjectUtils) === false) {
-        console.log('没有选中对象');
-         // 选择被清空
-      isObjectSelected.value = false;
-      selectedObject.value = null;
+    const currentGraphicObjectUtils = await pageEditor.editGetSelectedGraphObjectUtils();
+    if (isGraphicObjectValid(currentGraphicObjectUtils) === false) {
       currentObjectType.value = 'Other';
-      //resetToDefaultProperties();
-
       commonProperties.value.width = 0;
       commonProperties.value.height = 0;
       commonProperties.value.opacity = 0;
@@ -388,6 +377,7 @@ const getSelectedObjectProperties = async () => {
       commonProperties.value.y = 0;
         return;
     }
+    graphicObjectUtils = currentGraphicObjectUtils;
 
     const objectType = await graphicObjectUtils.getType();
 
@@ -395,9 +385,15 @@ const getSelectedObjectProperties = async () => {
         currentObjectType.value = 'Text';
         const fontSize = await textObjectUtils.getFontSize(graphicObjectUtils);
         textProperties.value.fontSize = fontSize;
-        //const fontInfo = await textObjectUtils.getFont(graphicObjectUtils);
-        //textProperties.value.fontFamily = fontInfo;
-
+        // 只有当颜色没有差异时才更新实际颜色
+        if (!isColorDifferent.value) {
+            console.log('更新实际颜色，因为没有差异');
+            const colorInfo = await textObjectUtils.getTextColorInfo(graphicObjectUtils);
+            let colorArray = colorInfo.color;
+            const newColor = rgbArrayToHex(colorArray);
+            actualColor.value = newColor;
+            displayedColor.value = newColor;
+        }
     } else if(objectType === Enum.FPD_GraphicObjectUtilsType.FSGraphicUtilsType_kPath){
         currentObjectType.value = 'Path';
     } else if(objectType === Enum.FPD_GraphicObjectUtilsType.FSGraphicUtilsType_kImage){
@@ -406,23 +402,18 @@ const getSelectedObjectProperties = async () => {
          currentObjectType.value = 'Other';
     }
 
-    isObjectSelected.value = true;
     const width = await graphicObjectUtils.getWidth();
     const height = await graphicObjectUtils.getHeight();
     const opacity = await graphicObjectUtils.getOpacity();
     const x = await graphicObjectUtils.getXPosition();
     const y = await graphicObjectUtils.getYPosition();
-    //const rotate = await graphicObjectUtils.getRotation();
+
     // 更新commonProperties
     commonProperties.value.width = width;
     commonProperties.value.height = height;
     commonProperties.value.opacity = opacity;
     commonProperties.value.x = x;
     commonProperties.value.y = y;
-    //commonProperties.value.rotation = rotate;
-    //console.log('获取对象属性:', commonProperties.value);
-
-
   } catch (error) {
     console.error('获取对象属性失败:', error);
   }
@@ -511,22 +502,21 @@ const registerSelectionHandler = async () => {
     console.log('app.registerSelectionHandlerJs: ', app, selectionHandler);
 };
 
-const clearMessage = () => {
-    keyEventMessage.value = '';
-};
-
 let selectionHandler: any = null;
 // vue的生命周期, 在组件挂载完成后执行
 onMounted(async () => {
+    //确保每次刷新页面时，工具栏都切换到手型工具，清空之前选中的对象状态
     const tool = await app.getToolByName("Hand");
     const toolstate = await app.setActiveTool(tool, false);
     console.log('app.setActiveTool: ', app, toolstate);
-
-    console.log('组件挂载，开始加载Graphic Object Addon并启动轮询');
+    // 加载 Graphic Object 编辑插件
     let state = await app.loadGraphicObjectAddon();
     console.log('Graphic Object Addon Load State:', state);
+    // 创建 PageEditor 实例
     pageEditor = await PageEditor.create();
+    // 创建 TextObjectUtils 实例
     textObjectUtils = await TextObjectUtils.create();
+    //注册选中处理器
     registerSelectionHandler();
     startPolling();
 });
@@ -661,7 +651,7 @@ onUnmounted(() => {
                     />
                 </div>
 
-                <div style="display: flex; align-items: center; gap: 12px;">
+                <!-- <div style="display: flex; align-items: center; gap: 12px;">
                     <span style="width: 100px; font-size: 12px; color: #666; font-weight: 500;">Color:</span>
                     <n-color-picker
                         :value="textProperties.color"
@@ -687,7 +677,39 @@ onUnmounted(() => {
                             borderRadius: '4px'
                         }"
                     ></div>
-                </div>
+                </div> -->
+
+                <div style="display: flex; align-items: center; gap: 12px;">
+                <span style="width: 100px; font-size: 12px; color: #666; font-weight: 500;">Color:</span>
+                <n-color-picker
+                    :value="displayedColor"
+                    @update:value="handleColorPreview"
+                    @confirm="handleColorChange"
+                    :modes="['hex']"
+                    :show-alpha="false"
+                    :actions="['confirm']"
+                    :swatches="[
+                        '#000000', '#FFFFFF', '#FF0000', '#00FF00', '#0000FF',
+                        '#FFFF00', '#00FFFF', '#FF00FF', '#FFA500', '#800080',
+                        '#008000', '#800000', '#008080', '#000080', '#808080'
+                    ]"
+                    size="small"
+                    style="width: 120px;"
+                />
+                <div
+                    :style="{
+                        width: '24px',
+                        height: '24px',
+                        backgroundColor: displayedColor,
+                        border: isColorDifferent ? '2px solid #ff6b35' : '1px solid #ddd',
+                        borderRadius: '4px'
+                    }"
+                    :title="isColorDifferent ? '颜色已修改，等待确认' : ''"
+                ></div>
+                <span v-if="isColorDifferent" style="color: #ff6b35; font-size: 10px;">
+                    未确认
+                </span>
+             </div>
             </div>
         </n-card>
 
@@ -707,6 +729,6 @@ onUnmounted(() => {
             </div>
         </n-card>
 
-        <!-- <n-button @click="registerSelectionHandler">Register SelectionHandler</n-button> -->
+        <!-- <n-button @click="registerMenuHandler">Register Menu SelectionHandler</n-button> -->
     </div>
 </template>
