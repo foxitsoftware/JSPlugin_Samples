@@ -12,6 +12,10 @@ import {
     NDivider,
     NSelect,
     NConfigProvider,
+    NTag,
+    NCard,
+    NInputNumber,
+    NColorPicker,
     // create naive ui
     create
 } from 'naive-ui';
@@ -21,7 +25,11 @@ const naive = create({
         NButton,
         NDivider,
         NSelect,
-        NConfigProvider
+        NConfigProvider,
+        NTag,
+        NCard,
+        NInputNumber,
+        NColorPicker
     ]
 });
 async function bootstrap() {

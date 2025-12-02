@@ -5,34 +5,27 @@ import {
     onUnmounted,
     getCurrentInstance,
     ref,
-    watch,
     computed
 } from 'vue';
 
-import
-{
-    PageEditor,
-    TextObjectUtils,
-    DefineConst,
-    Enum
-} from 'fx-jspluginsdk';
 
 import {
-    NSelect,
-    NCard,
-    NButton,
-    NInputNumber,
-    NSlider,
-    NColorPicker
-} from 'naive-ui';
+PageEditor,
+TextObjectUtils,
+DefineConst,
+Enum,
+GraphicObjectUtils,
+// @ts-ignore
+} from 'fx-jspluginsdk';
+
 
 const { proxy }: any = getCurrentInstance();
 const app = (proxy as { $pluginApp: any }).$pluginApp;
 
 //全局变量
-let pageEditor: PageEditorType | null;
-let graphicObjectUtils: GraphicObjectUtilsType | null;
-let textObjectUtils: TextObjectUtilsType | null;
+let pageEditor: PageEditor;
+let graphicObjectUtils: GraphicObjectUtils;
+let textObjectUtils: TextObjectUtils;
 const selectedEditType = ref('Edit Object');
 const currentObjectType = ref<string>('');
 // 操作状态标志
@@ -289,19 +282,19 @@ const applyTextProperty = async (property: string, value: any) => {
             switch (property) {
                 case 'fontFamily':
                     await textObjectUtils.setFont({
-                    graphicObjectUtils: graphicObjectUtils,
-                    fontName: '宋体',
-                    bold: true,
-                    italic: false,
-                    opType: Enum.FPD_FONTOPERATION.kName
-                });
+                        graphicObjectUtils: graphicObjectUtils,
+                        fontName: '宋体',
+                        bold: true,
+                        italic: false,
+                        opType: Enum.FPD_FONTOPERATION.kName
+                    });
                     break;
                 case 'fontSize':
                     await textObjectUtils.setFontSize(graphicObjectUtils, value);
                     break;
                 case 'color':
                     console.log('设置颜色 RGB 数组:', value);
-                    await textObjectUtils.setStrokeInfo(graphicObjectUtils, true, value, true);
+                    await textObjectUtils.setFillInfo(graphicObjectUtils, true, value, true);
                     //textProperties.value.color = rgbArrayToHex(value);
                     break;
                 case 'isBold':
@@ -323,8 +316,8 @@ const applyTextProperty = async (property: string, value: any) => {
 
 
 // 处理对象选择框变化
-const handleEditTypeChange = async(value: string) => {
-    if(!pageEditor) return;
+const handleEditTypeChange = async (value: string) => {
+    if (!pageEditor) return;
     // 根据选择的类型执行不同的操作
     switch (value) {
         case 'text':
@@ -360,76 +353,76 @@ const isGraphicObjectValid = (utils: any): boolean => {
 
 // 获取选中对象属性
 const getSelectedObjectProperties = async () => {
-  if (!pageEditor) return;
-  if(isApplyingProperty) {
-      console.log('正在应用属性，跳过本次轮询');
-      return;
-  }
-
-  try {
-    const currentGraphicObjectUtils = await pageEditor.editGetSelectedGraphObjectUtils();
-    if (isGraphicObjectValid(currentGraphicObjectUtils) === false) {
-      currentObjectType.value = 'Other';
-      commonProperties.value.width = 0;
-      commonProperties.value.height = 0;
-      commonProperties.value.opacity = 0;
-      commonProperties.value.x = 0;
-      commonProperties.value.y = 0;
+    if (!pageEditor) return;
+    if (isApplyingProperty) {
+        console.log('正在应用属性，跳过本次轮询');
         return;
     }
-    graphicObjectUtils = currentGraphicObjectUtils;
 
-    const objectType = await graphicObjectUtils.getType();
-
-    if(objectType === Enum.FPD_GraphicObjectUtilsType.FSGraphicUtilsType_kText){
-        currentObjectType.value = 'Text';
-        const fontSize = await textObjectUtils.getFontSize(graphicObjectUtils);
-        textProperties.value.fontSize = fontSize;
-        // 只有当颜色没有差异时才更新实际颜色
-        if (!isColorDifferent.value) {
-            console.log('更新实际颜色，因为没有差异');
-            const colorInfo = await textObjectUtils.getTextColorInfo(graphicObjectUtils);
-            let colorArray = colorInfo.color;
-            const newColor = rgbArrayToHex(colorArray);
-            actualColor.value = newColor;
-            displayedColor.value = newColor;
+    try {
+        const currentGraphicObjectUtils = await pageEditor.editGetSelectedGraphObjectUtils();
+        if (isGraphicObjectValid(currentGraphicObjectUtils) === false) {
+            currentObjectType.value = 'Other';
+            commonProperties.value.width = 0;
+            commonProperties.value.height = 0;
+            commonProperties.value.opacity = 0;
+            commonProperties.value.x = 0;
+            commonProperties.value.y = 0;
+            return;
         }
-    } else if(objectType === Enum.FPD_GraphicObjectUtilsType.FSGraphicUtilsType_kPath){
-        currentObjectType.value = 'Path';
-    } else if(objectType === Enum.FPD_GraphicObjectUtilsType.FSGraphicUtilsType_kImage){
-         currentObjectType.value = 'Image';
-    } else {
-         currentObjectType.value = 'Other';
+        graphicObjectUtils = currentGraphicObjectUtils;
+
+        const objectType = await graphicObjectUtils.getType();
+
+        if (objectType === Enum.FPD_GraphicObjectUtilsType.FSGraphicUtilsType_kText) {
+            currentObjectType.value = 'Text';
+            const fontSize = await textObjectUtils.getFontSize(graphicObjectUtils);
+            textProperties.value.fontSize = fontSize;
+            // 只有当颜色没有差异时才更新实际颜色
+            if (!isColorDifferent.value) {
+                console.log('更新实际颜色，因为没有差异');
+                const colorInfo = await textObjectUtils.getTextColorInfo(graphicObjectUtils);
+                let colorArray = colorInfo.color;
+                const newColor = rgbArrayToHex(colorArray);
+                actualColor.value = newColor;
+                displayedColor.value = newColor;
+            }
+        } else if (objectType === Enum.FPD_GraphicObjectUtilsType.FSGraphicUtilsType_kPath) {
+            currentObjectType.value = 'Path';
+        } else if (objectType === Enum.FPD_GraphicObjectUtilsType.FSGraphicUtilsType_kImage) {
+            currentObjectType.value = 'Image';
+        } else {
+            currentObjectType.value = 'Other';
+        }
+
+        const width = await graphicObjectUtils.getWidth();
+        const height = await graphicObjectUtils.getHeight();
+        const opacity = await graphicObjectUtils.getOpacity();
+        const x = await graphicObjectUtils.getXPosition();
+        const y = await graphicObjectUtils.getYPosition();
+
+        // 更新commonProperties
+        commonProperties.value.width = width;
+        commonProperties.value.height = height;
+        commonProperties.value.opacity = opacity;
+        commonProperties.value.x = x;
+        commonProperties.value.y = y;
+    } catch (error) {
+        console.error('获取对象属性失败:', error);
     }
-
-    const width = await graphicObjectUtils.getWidth();
-    const height = await graphicObjectUtils.getHeight();
-    const opacity = await graphicObjectUtils.getOpacity();
-    const x = await graphicObjectUtils.getXPosition();
-    const y = await graphicObjectUtils.getYPosition();
-
-    // 更新commonProperties
-    commonProperties.value.width = width;
-    commonProperties.value.height = height;
-    commonProperties.value.opacity = opacity;
-    commonProperties.value.x = x;
-    commonProperties.value.y = y;
-  } catch (error) {
-    console.error('获取对象属性失败:', error);
-  }
 };
 
 // 设置轮询
 const startPolling = () => {
-  pollInterval = window.setInterval(getSelectedObjectProperties, POLL_INTERVAL_MS);
+    pollInterval = window.setInterval(getSelectedObjectProperties, POLL_INTERVAL_MS);
 };
 
 // 停止轮询
 const stopPolling = () => {
-  if (pollInterval) {
-    clearInterval(pollInterval);
-    pollInterval = null;
-  }
+    if (pollInterval) {
+        clearInterval(pollInterval);
+        pollInterval = null;
+    }
 };
 
 const keyEventMessage = ref<string>('');
@@ -451,10 +444,10 @@ const registerSelectionHandler = async () => {
                 if (typeof keyInfoData === 'string') {
                     const keyData = JSON.parse(keyInfoData);
                     console.log('解析后的键盘数据:', keyData);
- 
+
                     if (keyData && keyData.keyName) {
                         // 使用解析后的对象
-                        const {fullName } = keyData;
+                        const { fullName } = keyData;
                         keyEventMessage.value = `${fullName}`;
                         console.log('设置键盘消息成功:', keyEventMessage.value);
                     } else {
@@ -479,10 +472,9 @@ const registerSelectionHandler = async () => {
                 if (typeof keyInfoData === 'string') {
                     const keyData = JSON.parse(keyInfoData);
                     console.log('解析后的键盘数据:', keyData);
- 
                     if (keyData && keyData.keyName) {
                         // 使用解析后的对象
-                        const {fullName } = keyData;
+                        const { fullName } = keyData;
                         keyEventMessage.value = `${fullName}`;
                         console.log('设置键盘消息成功:', keyEventMessage.value);
                     } else {
@@ -532,80 +524,40 @@ onUnmounted(() => {
         <!-- 编辑类型选择 -->
         <div style="display: flex; align-items: center; margin-bottom: 20px">
             <span style="margin-right: 10px">Edit Type:</span>
-            <n-select
-                style="width: 200px"
-                v-model:value="selectedEditType"
-                :options="editTypeOptions"
-                placeholder="Select Edit Type"
-                @update:value="handleEditTypeChange"
-            />
+            <n-select style="width: 200px" v-model:value="selectedEditType" :options="editTypeOptions"
+                placeholder="Select Edit Type" @update:value="handleEditTypeChange" />
         </div>
 
-        <n-card title="Common Property" style="margin-bottom: 10px" :header-style="{ fontSize: '12px'}">
+        <n-card title="Common Property" style="margin-bottom: 10px" :header-style="{ fontSize: '12px' }">
             <div style="display: flex; flex-direction: column; gap: 16px;">
                 <div style="display: flex; align-items: center; gap: 12px;">
                     <span style="width: 100px; font-size: 12px; color: #666; font-weight: 500;">Width:</span>
-                    <n-input-number
-                        :value="commonProperties.width"
-                        :show-button="false"
-                        @update:value="handleWidthChange"
-                        :min="0"
-                        :max="1000"
-                        size="small"
-                        style="font-size: 10px;"
-                    />
+                    <n-input-number :value="commonProperties.width" :show-button="false"
+                        @update:value="handleWidthChange" :min="0" :max="1000" size="small" style="font-size: 10px;" />
                 </div>
 
                 <div style="display: flex; align-items: center; gap: 12px;">
                     <span style="width: 100px; font-size: 12px; color: #666; font-weight: 500;">Height:</span>
-                    <n-input-number
-                        :value="commonProperties.height"
-                        :show-button="false"
-                        @update:value="handleHeightChange"
-                        :min="0"
-                        :max="1000"
-                        size="small"
-                        style="font-size: 10px;"
-                    />
+                    <n-input-number :value="commonProperties.height" :show-button="false"
+                        @update:value="handleHeightChange" :min="0" :max="1000" size="small" style="font-size: 10px;" />
                 </div>
 
                 <div style="display: flex; align-items: center; gap: 12px;">
                     <span style="width: 100px; font-size: 12px; color: #666; font-weight: 500;">X Pos:</span>
-                    <n-input-number
-                        :value="commonProperties.x"
-                        @update:value="handleXPositionChange"
-                        :show-button="false"
-                        :min="0"
-                        :max="1000"
-                        size="small"
-                        style="font-size: 10px;"
-                    />
+                    <n-input-number :value="commonProperties.x" @update:value="handleXPositionChange"
+                        :show-button="false" :min="0" :max="1000" size="small" style="font-size: 10px;" />
                 </div>
 
                 <div style="display: flex; align-items: center;gap: 12px;">
                     <span style="width: 100px; font-size: 12px; color: #666; font-weight: 500;">Y Pos:</span>
-                    <n-input-number
-                        :value="commonProperties.x"
-                        @update:value="handleYPositionChange"
-                        :show-button="false"
-                        :min="0"
-                        :max="1000"
-                        size="small"
-                        style="font-size: 10px;"
-                    />
+                    <n-input-number :value="commonProperties.y" @update:value="handleYPositionChange"
+                        :show-button="false" :min="0" :max="1000" size="small" style="font-size: 10px;" />
                 </div>
 
                 <div style="display: flex; align-items: center;gap: 12px;">
                     <span style="width: 100px; font-size: 12px; color: #666; font-weight: 500;">Opacity:</span>
-                    <n-input-number
-                        :value="commonProperties.opacity"
-                        :show-button="false"
-                        @update:value="handleOpacityChange"
-                        :min="0"
-                        :max="100"
-                        size="small"
-                        style="font-size: 10px;"
-                    />
+                    <n-input-number :value="commonProperties.opacity" :show-button="false"
+                        @update:value="handleOpacityChange" :min="0" :max="100" size="small" style="font-size: 10px;" />
                 </div>
 
                 <!-- <div style="display: flex; align-items: center;gap: 12px;">
@@ -624,31 +576,20 @@ onUnmounted(() => {
         </n-card>
 
         <!-- 文本属性 - 只在选中文本对象时显示 -->
-         <n-card v-if="currentObjectType === 'Text'" title="Text Property" style="margin-bottom: 20px" :header-style="{ fontSize: '12px'}">
+        <n-card v-if="currentObjectType === 'Text'" title="Text Property" style="margin-bottom: 20px"
+            :header-style="{ fontSize: '12px' }">
             <div style="display: flex; flex-direction: column; gap: 16px;">
                 <!-- 字体和字号 -->
                 <div style="display: flex; align-items: center; gap: 12px;">
                     <span style="width: 100px; font-size: 12px; color: #666; font-weight: 500;">Font Family:</span>
-                    <n-select
-                        style="flex: 1; min-width: 120px;"
-                        :value="textProperties.fontFamily"
-                        @update:value="handleFontFamilyChange"
-                        :options="fontFamilyOptions"
-                        placeholder="Select Font"
-                    />
+                    <n-select style="flex: 1; min-width: 120px;" :value="textProperties.fontFamily"
+                        @update:value="handleFontFamilyChange" :options="fontFamilyOptions" placeholder="Select Font" />
                 </div>
 
                 <div style="display: flex; align-items: center; gap: 12px;">
                     <span style="width: 100px; font-size: 12px; color: #666; font-weight: 500;">Font Size:</span>
-                    <n-input-number
-                        :value="textProperties.fontSize"
-                        :show-button="false"
-                        @update:value="handleFontSizeChange"
-                        :min="8"
-                        :max="72"
-                        size="small"
-                        style="font-size: 10px;"
-                    />
+                    <n-input-number :value="textProperties.fontSize" :show-button="false"
+                        @update:value="handleFontSizeChange" :min="8" :max="72" size="small" style="font-size: 10px;" />
                 </div>
 
                 <!-- <div style="display: flex; align-items: center; gap: 12px;">
@@ -680,41 +621,30 @@ onUnmounted(() => {
                 </div> -->
 
                 <div style="display: flex; align-items: center; gap: 12px;">
-                <span style="width: 100px; font-size: 12px; color: #666; font-weight: 500;">Color:</span>
-                <n-color-picker
-                    :value="displayedColor"
-                    @update:value="handleColorPreview"
-                    @confirm="handleColorChange"
-                    :modes="['hex']"
-                    :show-alpha="false"
-                    :actions="['confirm']"
-                    :swatches="[
-                        '#000000', '#FFFFFF', '#FF0000', '#00FF00', '#0000FF',
-                        '#FFFF00', '#00FFFF', '#FF00FF', '#FFA500', '#800080',
-                        '#008000', '#800000', '#008080', '#000080', '#808080'
-                    ]"
-                    size="small"
-                    style="width: 120px;"
-                />
-                <div
-                    :style="{
+                    <span style="width: 100px; font-size: 12px; color: #666; font-weight: 500;">Color:</span>
+                    <n-color-picker :value="displayedColor" @update:value="handleColorPreview"
+                        @confirm="handleColorChange" :modes="['hex']" :show-alpha="false" :actions="['confirm']"
+                        :swatches="[
+                            '#000000', '#FFFFFF', '#FF0000', '#00FF00', '#0000FF',
+                            '#FFFF00', '#00FFFF', '#FF00FF', '#FFA500', '#800080',
+                            '#008000', '#800000', '#008080', '#000080', '#808080'
+                        ]" size="small" style="width: 120px;" />
+                    <div :style="{
                         width: '24px',
                         height: '24px',
                         backgroundColor: displayedColor,
                         border: isColorDifferent ? '2px solid #ff6b35' : '1px solid #ddd',
                         borderRadius: '4px'
-                    }"
-                    :title="isColorDifferent ? '颜色已修改，等待确认' : ''"
-                ></div>
-                <span v-if="isColorDifferent" style="color: #ff6b35; font-size: 10px;">
-                    未确认
-                </span>
-             </div>
+                    }" :title="isColorDifferent ? '颜色已修改，等待确认' : ''"></div>
+                    <span v-if="isColorDifferent" style="color: #ff6b35; font-size: 10px;">
+                        未确认
+                    </span>
+                </div>
             </div>
         </n-card>
 
         <!-- 加一个控件显示selection keydown ,up的按键的信息 -->
-        <n-card title="Key Events Message" style="margin-bottom: 20px" :header-style="{ fontSize: '12px'}">
+        <n-card title="Key Events Message" style="margin-bottom: 20px" :header-style="{ fontSize: '12px' }">
             <div style="display: flex; align-items: center; gap: 8px; min-height: 32px;">
                 <span style="font-size: 12px; color: #666; min-width: 60px;">Current Enter Key:</span>
                 <n-tag v-if="keyEventMessage" size="small" type="info">
