@@ -351,6 +351,23 @@ const isGraphicObjectValid = (utils: any): boolean => {
     return false;
 };
 
+// 在组件的适当位置添加此函数
+const updateFontFamilyOptions = async (fontName: string) => {
+    // 检查字体是否已存在于选项中
+    const existingOption = fontFamilyOptions.find(option => option.value === fontName);
+
+    if (!existingOption) {
+        // 如果不存在，则添加新选项
+        fontFamilyOptions.push({
+            label: fontName,
+            value: fontName
+        });
+    }
+
+    // 更新当前选中的字体
+    textProperties.value.fontFamily = fontName;
+};
+
 // 获取选中对象属性
 const getSelectedObjectProperties = async () => {
     if (!pageEditor) return;
@@ -377,6 +394,12 @@ const getSelectedObjectProperties = async () => {
         if (objectType === Enum.FPD_GraphicObjectUtilsType.FSGraphicUtilsType_kText) {
             currentObjectType.value = 'Text';
             const fontSize = await textObjectUtils.getFontSize(graphicObjectUtils);
+            const fontName = await textObjectUtils.getFont(graphicObjectUtils, true);
+            console.log(`获取字体: ${fontName}, 字号: ${fontSize}`);
+            // 更新字体选项和选中值
+            if (fontName) {
+                await updateFontFamilyOptions(fontName);
+            }
             textProperties.value.fontSize = fontSize;
             // 只有当颜色没有差异时才更新实际颜色
             if (!isColorDifferent.value) {
