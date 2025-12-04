@@ -246,7 +246,8 @@ const handleColorPreview = (value: string) => {
 const handleColorChange = async (value: string) => {
     displayedColor.value = value;
     actualColor.value = value;
-
+ 
+    console.log('确认颜色更改:', value);
     const rgbArray = hexToRgbArray(value);
     await applyTextProperty('color', rgbArray);
 };
@@ -295,6 +296,9 @@ const applyTextProperty = async (property: string, value: any) => {
                 case 'color':
                     console.log('设置颜色 RGB 数组:', value);
                     await textObjectUtils.setFillInfo(graphicObjectUtils, true, value, true);
+                    const colorInfo = await textObjectUtils.getFillInfo(graphicObjectUtils);
+                    let colorArray = colorInfo.color;
+                    console.log('设置完后获取的颜色值:', colorArray);
                     //textProperties.value.color = rgbArrayToHex(value);
                     break;
                 case 'isBold':
@@ -381,8 +385,9 @@ const getSelectedObjectProperties = async () => {
             // 只有当颜色没有差异时才更新实际颜色
             if (!isColorDifferent.value) {
                 console.log('更新实际颜色，因为没有差异');
-                const colorInfo = await textObjectUtils.getTextColorInfo(graphicObjectUtils);
+                const colorInfo = await textObjectUtils.getFillInfo(graphicObjectUtils);
                 let colorArray = colorInfo.color;
+                console.log('获取到的颜色数组:', colorArray);
                 const newColor = rgbArrayToHex(colorArray);
                 actualColor.value = newColor;
                 displayedColor.value = newColor;
@@ -592,34 +597,6 @@ onUnmounted(() => {
                         @update:value="handleFontSizeChange" :min="8" :max="72" size="small" style="font-size: 10px;" />
                 </div>
 
-                <!-- <div style="display: flex; align-items: center; gap: 12px;">
-                    <span style="width: 100px; font-size: 12px; color: #666; font-weight: 500;">Color:</span>
-                    <n-color-picker
-                        :value="textProperties.color"
-                        @update:value="handleColorPreview"
-                        @confirm="handleColorChange"
-                        :modes="['hex']"
-                        :show-alpha="false"
-                        :actions="['confirm']"
-                        :swatches="[
-                            '#000000', '#FFFFFF', '#FF0000', '#00FF00', '#0000FF',
-                            '#FFFF00', '#00FFFF', '#FF00FF', '#FFA500', '#800080',
-                            '#008000', '#800000', '#008080', '#000080', '#808080'
-                        ]"
-                        size="small"
-                        style="width: 120px;"
-                    />
-                    <div
-                        :style="{
-                            width: '24px',
-                            height: '24px',
-                            backgroundColor: textProperties.color,
-                            border: '1px solid #ddd',
-                            borderRadius: '4px'
-                        }"
-                    ></div>
-                </div> -->
-
                 <div style="display: flex; align-items: center; gap: 12px;">
                     <span style="width: 100px; font-size: 12px; color: #666; font-weight: 500;">Color:</span>
                     <n-color-picker :value="displayedColor" @update:value="handleColorPreview"
@@ -635,7 +612,8 @@ onUnmounted(() => {
                         backgroundColor: displayedColor,
                         border: isColorDifferent ? '2px solid #ff6b35' : '1px solid #ddd',
                         borderRadius: '4px'
-                    }" :title="isColorDifferent ? '颜色已修改，等待确认' : ''"></div>
+                    }" :title="isColorDifferent ? '颜色已修改，等待确认' : ''">
+                    </div>
                     <span v-if="isColorDifferent" style="color: #ff6b35; font-size: 10px;">
                         未确认
                     </span>
