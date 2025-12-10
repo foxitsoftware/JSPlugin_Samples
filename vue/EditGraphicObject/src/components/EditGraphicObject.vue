@@ -246,7 +246,7 @@ const handleColorPreview = (value: string) => {
 const handleColorChange = async (value: string) => {
     displayedColor.value = value;
     actualColor.value = value;
- 
+
     console.log('确认颜色更改:', value);
     const rgbArray = hexToRgbArray(value);
     await applyTextProperty('color', rgbArray);
@@ -464,7 +464,7 @@ const registerSelectionHandler = async () => {
 
     const callbacks = {
         // @ts-ignore
-        onSelectionKeyDown: (clientData: any, doc: any, curSelectData: any, keyInfoData: any) => {
+        onPageObjectSelectionKeyDown: (clientData: any, doc: any, curSelectData: any, keyInfoData: any) => {
             keyEventMessage.value = '';
             console.log('onSelectionKeyDown', keyInfoData);
             try {
@@ -491,7 +491,7 @@ const registerSelectionHandler = async () => {
             return true;
         },
         // @ts-ignore
-        onSelectionKeyUp: (clientData: any, doc: any, curSelectData: any, keyInfoData: any) => {
+        onPageObjectSelectionKeyUp: (clientData: any, doc: any, curSelectData: any, keyInfoData: any) => {
             //keyEventMessage.value = `KeyCode: ${keyInfoData.keyName}, CharCode: ${keyInfoData.fullName}`;
             keyEventMessage.value = '';
             console.log('onSelectionKeyUp', keyInfoData);
@@ -516,9 +516,14 @@ const registerSelectionHandler = async () => {
                 keyEventMessage.value = '';
             }
             return true;
+        },
+        
+        onPageObjectSelectionChanged: async (clientData: any) => {
+            await getSelectedObjectProperties();
+            return true;
         }
     };
-    selectionHandler = await app.registerSelectionHandlerJs(callbacks);
+    selectionHandler = await app.registerPageObjectSelectionHandler(callbacks);
     console.log('app.registerSelectionHandlerJs: ', app, selectionHandler);
 };
 
@@ -538,12 +543,12 @@ onMounted(async () => {
     textObjectUtils = await TextObjectUtils.create();
     //注册选中处理器
     registerSelectionHandler();
-    startPolling();
+    //startPolling();
 });
 
 onUnmounted(() => {
     console.log('组件卸载，停止轮询');
-    stopPolling();
+    //stopPolling();
 });
 </script>
 
@@ -573,13 +578,13 @@ onUnmounted(() => {
                 <div style="display: flex; align-items: center; gap: 12px;">
                     <span style="width: 100px; font-size: 12px; color: #666; font-weight: 500;">X Pos:</span>
                     <n-input-number :value="commonProperties.x" @update:value="handleXPositionChange"
-                        :show-button="false" :min="0" :max="1000" size="small" style="font-size: 10px;" />
+                        :show-button="false" :min="0" :max="3000" size="small" style="font-size: 10px;" />
                 </div>
 
                 <div style="display: flex; align-items: center;gap: 12px;">
                     <span style="width: 100px; font-size: 12px; color: #666; font-weight: 500;">Y Pos:</span>
                     <n-input-number :value="commonProperties.y" @update:value="handleYPositionChange"
-                        :show-button="false" :min="0" :max="1000" size="small" style="font-size: 10px;" />
+                        :show-button="false" :min="0" :max="3000" size="small" style="font-size: 10px;" />
                 </div>
 
                 <div style="display: flex; align-items: center;gap: 12px;">
