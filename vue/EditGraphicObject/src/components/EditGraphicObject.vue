@@ -5,13 +5,15 @@ import {
     onUnmounted,
     getCurrentInstance,
     ref,
-    computed
+    computed,
+    Ref
 } from 'vue';
 
 
 import {
 PageEditor,
 TextObjectUtils,
+PathObjectUtils,
 DefineConst,
 Enum,
 GraphicObjectUtils,
@@ -26,10 +28,12 @@ const app = (proxy as { $pluginApp: any }).$pluginApp;
 let pageEditor: PageEditor;
 let graphicObjectUtils: GraphicObjectUtils;
 let textObjectUtils: TextObjectUtils;
+let pathObjectUtils: PathObjectUtils;
 const selectedEditType = ref('Edit Object');
 const currentObjectType = ref<string>('');
 // 操作状态标志
 let isApplyingProperty = false;
+const isInEditMode: Ref<boolean> = ref(false);
 
 // 编辑类型选择框的选项
 const editTypeOptions = [
@@ -117,7 +121,7 @@ const handleOpacityChange = async (value: number | null) => {
     if (value === null) return;
     await handlePropertyChange('opacity', value);
 };
-
+//修改通用属性
 const applySingleProperty = async (property: string, value: number) => {
     if (pageEditor) {
         isApplyingProperty = true;
@@ -252,22 +256,6 @@ const handleColorChange = async (value: string) => {
     await applyTextProperty('color', rgbArray);
 };
 
-
-// const handleColorPreview = (value: string) => {
-//     textProperties.value.color = value;
-//     console.log('颜色预览:', value);
-// };
-
-// const handleColorChange = async (value: string) => {
-//     isApplyingProperty = true;
-//     textProperties.value.color = value;
-//     // 转换为 RGB 数组
-//     const rgbArray = hexToRgbArray(value);
-//     console.log(`颜色转换: ${value} -> RGB数组[${rgbArray.join(', ')}]`);
-
-//     await applyTextProperty('color', rgbArray);
-// };
-
 // 应用文本属性
 const applyTextProperty = async (property: string, value: any) => {
     if (pageEditor) {
@@ -339,6 +327,111 @@ const handleEditTypeChange = async (value: string) => {
     }
 };
 
+//path对象特有属性
+// 路径属性
+interface PathPropertiesType {
+    lineWidth: number;
+    strokeColor: string;
+    fillColor: string;
+    // lineStyle?: string; // 可选：实线、虚线等
+}
+
+const pathProperties = ref<PathPropertiesType>({
+    lineWidth: 1,
+    strokeColor: '#000000',
+    fillColor: 'transparent',
+    // lineStyle: 'solid'
+});
+
+// 路径颜色状态管理
+const displayedStrokeColor = ref('#000000');
+const actualStrokeColor = ref('#000000');
+const isStrokeColorDifferent = computed(() => displayedStrokeColor.value !== actualStrokeColor.value);
+
+const displayedFillColor = ref('transparent');
+const actualFillColor = ref('transparent');
+const isFillColorDifferent = computed(() => displayedFillColor.value !== actualFillColor.value);
+
+// 线型选项（可选）
+// const lineStyleOptions = [
+//     { label: '实线', value: 'solid' },
+//     { label: '虚线', value: 'dashed' },
+//     { label: '点线', value: 'dotted' }
+// ];
+
+// 路径属性处理函数
+const handleLineWidthChange = async (value: number | null) => {
+    if (value === null) return;
+    pathProperties.value.lineWidth = value;
+    await applyPathProperty('lineWidth', value);
+};
+
+const handleStrokeColorPreview = (value: string) => {
+    displayedStrokeColor.value = value;
+};
+
+const handleStrokeColorChange = async (value: string) => {
+    displayedStrokeColor.value = value;
+    actualStrokeColor.value = value;
+    pathProperties.value.strokeColor = value;
+    
+    const rgbArray = hexToRgbArray(value);
+    await applyPathProperty('strokeColor', rgbArray);
+};
+
+const handleFillColorPreview = (value: string) => {
+    displayedFillColor.value = value;
+};
+
+const handleFillColorChange = async (value: string) => {
+    displayedFillColor.value = value;
+    actualFillColor.value = value;
+    pathProperties.value.fillColor = value;
+    
+    if (value === 'transparent') {
+        await applyPathProperty('fillColor', null); // 或特定值表示透明
+    } else {
+        const rgbArray = hexToRgbArray(value);
+        await applyPathProperty('fillColor', rgbArray);
+    }
+};
+
+// 应用路径属性到SDK
+const applyPathProperty = async (property: string, value: any) => {
+    if (!pageEditor) {
+        console.error('SDK工具未初始化');
+        return;
+    }
+
+    try {
+        const currentUtils = await pageEditor.editGetSelectedGraphObjectUtils();
+        if (!currentUtils) {
+            console.error('没有选中对象');
+            return;
+        }
+
+        console.log(`应用路径属性 ${property}:`, value);
+
+        switch (property) {
+            case 'lineWidth':
+                await pathObjectUtils.setLineWidth(currentUtils, value);
+                break;
+            case 'strokeColor':
+                // await pathObjectUtils.setStrokeColor(currentUtils, value);
+                break;
+            case 'fillColor':
+                // await pathObjectUtils.setFillColor(currentUtils, value);
+                break;
+            // case 'lineStyle':
+                // await pathObjectUtils.setLineStyle(currentUtils, value);
+                // break;
+        }
+    } catch (error) {
+        console.error(`设置路径属性 ${property} 失败:`, error);
+    }
+};
+
+
 // 轮询相关
 let pollInterval: number | null = null;
 const POLL_INTERVAL_MS = 1000; // 根据需求调整
@@ -394,6 +487,7 @@ const getSelectedObjectProperties = async () => {
         graphicObjectUtils = currentGraphicObjectUtils;
 
         const objectType = await graphicObjectUtils.getType();
+        console.log('Selected Object Type:', objectType);
 
         if (objectType === Enum.FPD_GraphicObjectUtilsType.FSGraphicUtilsType_kText) {
             currentObjectType.value = 'Text';
@@ -415,8 +509,13 @@ const getSelectedObjectProperties = async () => {
                 actualColor.value = newColor;
                 displayedColor.value = newColor;
             }
-        } else if (objectType === Enum.FPD_GraphicObjectUtilsType.FSGraphicUtilsType_kPath) {
+        }
+        else if (objectType === Enum.FPD_GraphicObjectUtilsType.FSGraphicUtilsType_KPath) {
+            console.log('Selected object is a Path');
             currentObjectType.value = 'Path';
+            let lineWidth = await pathObjectUtils.getLineWidth(graphicObjectUtils);
+            pathProperties.value.lineWidth = lineWidth;
+
         } else if (objectType === Enum.FPD_GraphicObjectUtilsType.FSGraphicUtilsType_kImage) {
             currentObjectType.value = 'Image';
         } else {
@@ -517,9 +616,49 @@ const registerSelectionHandler = async () => {
             }
             return true;
         },
-        
+
         onPageObjectSelectionChanged: async (clientData: any) => {
+            console.log('onPageObjectSelectionChanged', clientData);
+            if (!pageEditor) return true;
+            const editMode  = await pageEditor.isInObjectEditMode();
+            console.log('isInObjectEditMode:', editMode);
+            isInEditMode.value = editMode;
+            if(isInEditMode.value === true){
+                console.log('In edit mode');
+                return true;
+            }
+            else{
+                console.log('not in edit mode');
+            }
             await getSelectedObjectProperties();
+            return true;
+        },
+
+        onPageObjectLButtonDblClk: async (clientData: any) => {
+            console.log('onPageObjectLButtonDblClk', clientData);
+            if (!pageEditor) return;
+            isInEditMode.valueOf = await pageEditor.isInObjectEditMode();
+            return true;
+        },
+
+        onEditToolLButtonDown: async (clientData: any) => {
+            console.log('onEditToolLButtonDown', clientData);
+            if (!pageEditor) return;
+            const editMode  = await pageEditor.isInObjectEditMode();
+            console.log('isInObjectEditMode:', editMode);
+            isInEditMode.value = editMode;
+            if(isInEditMode.value === true){
+                console.log('In edit mode');
+                return true;
+            }
+            else{
+                currentObjectType.value = 'Other';
+                commonProperties.value.width = 0;
+                commonProperties.value.height = 0;
+                commonProperties.value.opacity = 0;
+                commonProperties.value.x = 0;
+                commonProperties.value.y = 0;
+            }
             return true;
         }
     };
@@ -541,7 +680,9 @@ onMounted(async () => {
     pageEditor = await PageEditor.create();
     // 创建 TextObjectUtils 实例
     textObjectUtils = await TextObjectUtils.create();
-    //注册选中处理器
+    // 创建 PathObjectUtils 实例
+    pathObjectUtils = await PathObjectUtils.create();
+    //注册选中选中后的事件
     registerSelectionHandler();
     //startPolling();
 });
@@ -561,6 +702,20 @@ onUnmounted(() => {
                 placeholder="Select Edit Type" @update:value="handleEditTypeChange" />
         </div>
 
+        <div v-if="isInEditMode" style="margin-bottom: 20px;">
+            <n-alert title="编辑模式" type="info" :bordered="false">
+                <template #icon>
+                    <n-icon>
+                        <EditIcon />
+                    </n-icon>
+                </template>
+                <div style="font-size: 12px; line-height: 1.4;">
+                    <div>当前正在编辑对象内容...</div>
+                </div>
+            </n-alert>
+        </div>
+
+        <div v-else>
         <n-card title="Common Property" style="margin-bottom: 10px" :header-style="{ fontSize: '12px' }">
             <div style="display: flex; flex-direction: column; gap: 16px;">
                 <div style="display: flex; align-items: center; gap: 12px;">
@@ -592,19 +747,6 @@ onUnmounted(() => {
                     <n-input-number :value="commonProperties.opacity" :show-button="false"
                         @update:value="handleOpacityChange" :min="0" :max="100" size="small" style="font-size: 10px;" />
                 </div>
-
-                <!-- <div style="display: flex; align-items: center;gap: 12px;">
-                    <span style="width: 100px; font-size: 12px; color: #666; font-weight: 500;">Rotate:</span>
-                    <n-input-number
-                        :value="commonProperties.rotation"
-                        :show-button="false"
-                        @update:value="handleRotateChange"
-                        :min="0"
-                        :max="360"
-                        size="small"
-                        style="font-size: 10px;"
-                    />
-                </div> -->
             </div>
         </n-card>
 
@@ -649,6 +791,67 @@ onUnmounted(() => {
             </div>
         </n-card>
 
+        <!-- <n-card v-if="currentObjectType === 'Path'" title="Path Property" style="margin-bottom: 10px"
+            :header-style="{ fontSize: '12px' }">
+            <div style="display: flex; flex-direction: column; gap: 16px;"> -->
+                <!-- 线宽 -->
+                <!-- <div style="display: flex; align-items: center; gap: 12px;">
+                    <span style="width: 100px; font-size: 12px; color: #666; font-weight: 500;">Line Width:</span>
+                    <n-input-number :value="pathProperties.lineWidth" :show-button="false"
+                        @update:value="handleLineWidthChange" :min="0.1" :max="20" :step="0.1" size="small"
+                        style="font-size: 10px; width: 100px;" />
+                </div> -->
+
+                <!-- 描边颜色 -->
+                <!-- <div style="display: flex; align-items: center; gap: 12px;">
+                    <span style="width: 100px; font-size: 12px; color: #666; font-weight: 500;">Stroke Color:</span>
+                    <n-color-picker :value="pathProperties.strokeColor" @update:value="handleStrokeColorPreview"
+                        @confirm="handleStrokeColorChange" :modes="['hex']" :show-alpha="false" :actions="['confirm']"
+                        :swatches="[
+                            '#000000', '#FF0000', '#00FF00', '#0000FF', '#FFFF00',
+                            '#FF00FF', '#FFA500', '#800080', '#008080', '#808080'
+                        ]" size="small" style="width: 120px;" />
+                    <div :style="{
+                        width: '24px',
+                        height: '24px',
+                        backgroundColor: pathProperties.strokeColor,
+                        border: isStrokeColorDifferent ? '2px solid #ff6b35' : '1px solid #ddd',
+                        borderRadius: '4px'
+                    }" :title="isStrokeColorDifferent ? '描边颜色已修改，等待确认' : ''">
+                    </div>
+                </div> -->
+
+                <!-- 填充颜色 -->
+                <!-- <div style="display: flex; align-items: center; gap: 12px;">
+                    <span style="width: 100px; font-size: 12px; color: #666; font-weight: 500;">Fill Color:</span>
+                    <n-color-picker :value="pathProperties.fillColor" @update:value="handleFillColorPreview"
+                        @confirm="handleFillColorChange" :modes="['hex']" :show-alpha="false" :actions="['confirm']"
+                        :swatches="[
+                            'transparent', '#FFFFFF', '#FF0000', '#00FF00', '#0000FF',
+                            '#FFFF00', '#FFA500', '#800080', '#008080', '#C0C0C0'
+                        ]" size="small" style="width: 120px;" />
+                    <div :style="{
+                        width: '24px',
+                        height: '24px',
+                        backgroundColor: pathProperties.fillColor,
+                        border: isFillColorDifferent ? '2px solid #ff6b35' : '1px solid #ddd',
+                        borderRadius: '4px'
+                    }" :title="isFillColorDifferent ? '填充颜色已修改，等待确认' : ''">
+                    </div>
+                    <span v-if="pathProperties.fillColor === 'transparent'" style="color: #999; font-size: 10px;">
+                        透明
+                    </span>
+                </div> -->
+
+                <!-- 线型（可选添加） -->
+                <!-- <div style="display: flex; align-items: center; gap: 12px;">
+                    <span style="width: 100px; font-size: 12px; color: #666; font-weight: 500;">Line Style:</span>
+                    <n-select style="width: 120px;" :value="pathProperties.lineStyle"
+                        @update:value="handleLineStyleChange" :options="lineStyleOptions" size="small" />
+                </div> -->
+            <!-- </div>
+        </n-card> -->
+
         <!-- 加一个控件显示selection keydown ,up的按键的信息 -->
         <n-card title="Key Events Message" style="margin-bottom: 20px" :header-style="{ fontSize: '12px' }">
             <div style="display: flex; align-items: center; gap: 8px; min-height: 32px;">
@@ -664,7 +867,7 @@ onUnmounted(() => {
                 </n-button> -->
             </div>
         </n-card>
+        </div>
 
-        <!-- <n-button @click="registerMenuHandler">Register Menu SelectionHandler</n-button> -->
     </div>
 </template>
