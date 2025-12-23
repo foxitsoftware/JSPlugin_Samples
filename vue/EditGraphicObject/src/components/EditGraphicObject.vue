@@ -663,7 +663,7 @@ const registerSelectionHandler = async () => {
         }
     };
     selectionHandler = await app.registerPageObjectSelectionHandler(callbacks);
-    console.log('app.registerSelectionHandlerJs: ', app, selectionHandler);
+    console.log('app.registerPageObjectSelectionHandler: ', app, selectionHandler);
 };
 
 let selectionHandler: any = null;
