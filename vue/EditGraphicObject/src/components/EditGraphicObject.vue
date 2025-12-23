@@ -518,8 +518,8 @@ const registerSelectionHandler = async () => {
             return true;
         }
     };
-    selectionHandler = await app.registerSelectionHandlerJs(callbacks);
-    console.log('app.registerSelectionHandlerJs: ', app, selectionHandler);
+    selectionHandler = await app.registerSelectionHandler(callbacks);
+    console.log('app.registerSelectionHandler: ', app, selectionHandler);
 };
 
 let selectionHandler: any = null;
