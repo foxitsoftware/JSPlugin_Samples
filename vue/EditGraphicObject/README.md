@@ -1,7 +1,7 @@
-# InsertText Sample
+# Edit GraphicObject Sample
 
-### InsertText Sample 的作用
-`InsertText Sample` 演示如何在PDF页面中插入文本对象，包括文本定位和格式设置。
+### Edit GraphicObject Sample 的作用
+`Edit GraphicObject` 演示如何基于选中的object对象，获取及设置相应的属性。
 
 #### 1. 安装依赖
 首先，安装所需的依赖库：

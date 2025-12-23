@@ -1,7 +1,7 @@
 {
   "author": "foxit",
   "copyright": "Copyright © 2024-2025 Foxit Software Inc. All Rights Reserved.",
-  "description": "Javascript Insert Text plugin demo",
+  "description": "Javascript edit graphic object plugin demo",
   "icon": "test/res/panelicon_.png",
   "id": "EditGraphicObject",
   "manifest_version": 1,
