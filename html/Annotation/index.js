@@ -16,8 +16,8 @@ window.onload = async () => {
     } = window.Foxit;
     const app = await PluginApp.create({
         pluginInfo: {
-            id: 'Annot',
-            name: 'Annot',
+            id: 'Annotation',
+            name: 'Annotation',
             version: '',
             description: '',
             author: '',
