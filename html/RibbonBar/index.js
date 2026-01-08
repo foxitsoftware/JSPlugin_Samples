@@ -1,6 +1,8 @@
 window.addRibbonButton = () => {};
 window.addRibbonDropButton = () => {};
 window.setFlag = () => {};
+window.categoryCopyPanel = () => {};
+window.panelCopyElementToPanel = () => {};
 window.onload = async () => {
     // const PluginApp = window.Foxit.PluginApp;
     // const PDFDictionary = window.Foxit.PDFDictionary;
@@ -152,5 +154,40 @@ window.onload = async () => {
         await btnElement.setEnabled(flag);
         const setFlagEle = document.getElementById('setFlag');
         setFlagEle.innerText = flag ? 'Disabled' : 'Enabled';
+    }
+    window.categoryCopyPanel = async () => {
+        let ribbonBar = await app.getRibbonBar();
+        console.log('app.getRibbonBar', ribbonBar);
+        let category = await ribbonBar.getActiveCategory();
+        console.log('ribbonBar.getActiveCategory', category);
+
+        // Ribbon_Category_Help 可以通过 RibbonBar getCategoryCount getCategoryByIndex 遍历得到
+        let categoryHelp = await ribbonBar.getCategoryByName('Ribbon_Category_Help');
+
+        // Help_Panel_About 可以通过 RibbonCategory getPanelCount getPanelByIndex 遍历得到
+        let panel = await  categoryHelp.getPanelByName('Help_Panel_About');
+        category.copyPanel(panel);
+        ribbonBar.reCalcLayout();
+    }
+
+    window.panelCopyElementToPanel = async() => {
+        let ribbonBar = await app.getRibbonBar();
+        console.log('app.getRibbonBar', ribbonBar);
+        let category = await ribbonBar.getActiveCategory();
+        console.log('ribbonBar.getActiveCategory', category);
+
+        let newPanel = await category.addPanel('TestPanel', 'TestPanel', '');
+
+
+        // Ribbon_Category_File 可以通过遍历 RibbonBar getCategoryCount getCategoryByIndex 遍历得到
+        let ribbonCategoryFile = await ribbonBar.getCategoryByName('Ribbon_Category_File');
+
+        // FILE_Panel_Main 通过遍历RibbonCategory getPanelCount getPanelByIndex 拿到
+        let ribbonPanelMainFile = await ribbonCategoryFile.getPanelByName('FILE_Panel_Main');
+
+        // File_Main_FilePageSaveAs 通过遍历 RibbonPanel getElementCount getElementByIndex 拿到
+        let element = await ribbonPanelMainFile.getElementByName('File_Main_FilePageSaveAs');
+        await newPanel.copyElementToPanel(element);
+        ribbonBar.reCalcLayout();
     }
 }
