@@ -15,6 +15,7 @@ import {
 } from 'fx-jspluginsdk';
 
 import _ from 'lodash';
+import { debug } from 'console';
 
 const { proxy }: any = getCurrentInstance();
 const app = (proxy as { $pluginApp: any }).$pluginApp;
@@ -164,9 +165,12 @@ const panelCopyElementToPanel = async() => {
     console.log('app.getRibbonBar', ribbonBar);
     let category = await ribbonBar.getActiveCategory();
     console.log('ribbonBar.getActiveCategory', category);
-
-    let newPanel = await category.addPanel('TestPanel', 'TestPanel', '');
-
+    let newPanel = await category.getPanelByName('TestPanel');
+    if (
+        _.isEmpty(newPanel)
+    ) {
+        newPanel = await category.addPanel('TestPanel', 'TestPanel', '');
+    }
 
     // Ribbon_Category_File 可以通过遍历 RibbonBar getCategoryCount getCategoryByIndex 遍历得到
     let ribbonCategoryFile = await ribbonBar.getCategoryByName('Ribbon_Category_File');
