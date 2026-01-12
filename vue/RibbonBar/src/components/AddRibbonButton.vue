@@ -15,7 +15,6 @@ import {
 } from 'fx-jspluginsdk';
 
 import _ from 'lodash';
-import { debug } from 'console';
 
 const { proxy }: any = getCurrentInstance();
 const app = (proxy as { $pluginApp: any }).$pluginApp;
