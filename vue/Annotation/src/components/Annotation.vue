@@ -72,15 +72,23 @@ const deleteHighlightAnnot = async () => {
     console.log(pageView);
     const pageIndex = await pageView.getPageIndex();
     let count = await pageView.getAnnotCount();
-    console.log(count);
-    for (let i = 0; i < count; i++) {
-        let annot = await pageView.getAnnotByIndex(i);
+    while (count-- > 0) {
+        let annot = await pageView.getAnnotByIndex(count);
         let type = await annot.getType();
         if (type === 'Highlight') {
             await pageView.deleteAnnot(annot);
         }
     }
     doc.reloadPage(pageIndex);
+    // console.log(count);
+    // for (let i = 0; i < count; i++) {
+    //     let annot = await pageView.getAnnotByIndex(i);
+    //     let type = await annot.getType();
+    //     if (type === 'Highlight') {
+    //         await pageView.deleteAnnot(annot);
+    //     }
+    // }
+    // doc.reloadPage(pageIndex);
 }
 
 const modifyHightlightAnnot = async () => {
@@ -124,3 +132,4 @@ onMounted(() => {
 </template>
 
 <style scoped lang='less'></style>
+
