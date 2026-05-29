@@ -24,6 +24,7 @@ const isDuplicateSearch = ref(false); // 是否是重复搜索
 // let app: App;
 const searchText = async () => {
     rectArr.value = [];
+    isDuplicateSearch.value = false; // 重置重复搜索提示
     if (
         _.isEmpty(text.value)
     ) {
@@ -38,10 +39,10 @@ const searchText = async () => {
         // 如果是重复搜索，直接返回并设置提示信息
         console.log('lastSearchText', lastSearchText.value);
         isDuplicateSearch.value = true;
-        return;
+        // return;
+    } else {
+        isDuplicateSearch.value = false; // 重置重复搜索提示
     }
-
-    isDuplicateSearch.value = false; // 重置重复搜索提示
     console.log('searchText', text.value);
     searchResultText.value = text.value;
     lastSearchText.value = text.value;
