@@ -86,49 +86,52 @@ window.onload = async () => {
 
         let doc = await app.getActiveDoc();
         console.log('app.getActiveDoc', doc);
+        const pageCount = await doc.getPageCount();
         let docView = await doc.getCurrentDocView();
         console.log('doc.getCurrentDocView', docView);
         let pageView = await docView.getCurrentPageView();
         console.log('docView.getCurrentPageView', pageView);
-        let page = await doc.getPage(0);
-        console.log('doc.getPage', page);
-
-        //一种方式, 根据指定page，通过TextPage.create创建TextPage对象
-        // let textPage = await TextPage.create({
-        //     page,
-        //     flag: 0,
-        // });
-        // await textPage.parseTextPage();
-        // console.log('TextPage.create', textPage);
-
-        //第二种方式
-        let textPage = await page.getTextPage();
-        let pageTextSearch = await textPage.createPageTextSearch();
-        console.log('textPage.createPageTextSearch', pageTextSearch);
-        let bFind = await pageTextSearch.findFirst(text, 0, 0);
-
         let rectArray = await FloatRectArray.create();
-        while (bFind) {
-            console.log('FindNext', bFind);
-            let rectArrayItem = await pageTextSearch.getRectArray();
-            console.log('rectArrayItem', rectArrayItem);
-            if (rectArrayItem === null) {
-                throw new Error('rectArrayItem failed');
+        for (let pageIndex = 0; pageIndex < pageCount; pageIndex++) {
+            let page = await doc.getPage(pageIndex);
+            console.log('doc.getPage', pageIndex, page);
+
+            //一种方式, 根据指定page，通过TextPage.create创建TextPage对象
+            // let textPage = await TextPage.create({
+            //     page,
+            //     flag: 0,
+            // });
+            // await textPage.parseTextPage();
+            // console.log('TextPage.create', textPage);
+
+            //第二种方式
+            let textPage = await page.getTextPage();
+            let pageTextSearch = await textPage.createPageTextSearch();
+            console.log('textPage.createPageTextSearch', pageIndex, pageTextSearch);
+            let bFind = await pageTextSearch.findFirst(text, 0, 0);
+
+            while (bFind) {
+                console.log('FindNext', pageIndex, bFind);
+                let rectArrayItem = await pageTextSearch.getRectArray();
+                console.log('rectArrayItem', pageIndex, rectArrayItem);
+                if (rectArrayItem === null) {
+                    throw new Error('rectArrayItem failed');
+                }
+                let rectCount = await rectArrayItem.getSize();
+                console.log('rectCount', pageIndex, rectCount);
+                if(rectCount > 0){
+                    await rectArray.append(rectArrayItem);
+                    rectArr.push({ pageIndex, rectArrayItem });
+                }
+                bFind = await pageTextSearch.findNext();
             }
-            let rectCount = await rectArrayItem.getSize();
-            console.log('rectCount', rectCount);
-            if(rectCount > 0){
-                await rectArray.append(rectArrayItem);
-                rectArr.push(rectArrayItem);
-            }
-            bFind = await pageTextSearch.findNext();
         }
         let findRectSize = await rectArray.getSize();
         console.log('findRectSize', findRectSize);
         let itemStr = '';
         if (findRectSize > 0) {
             rectArr.map((item, index) => {
-                itemStr += `<li data-index="${index}">result ${index+1}: ${text}</li>`;
+                itemStr += `<li data-index="${index}">result ${index+1}: ${text} (page ${item.pageIndex + 1})</li>`;
             });
             document.getElementById('result-list').innerHTML = itemStr;
         }
@@ -151,8 +154,9 @@ window.onload = async () => {
         // 处理选中项的逻辑
         const doc = await app.getActiveDoc();
         const docView = await doc.getCurrentDocView();
-        const pageView = await docView.getCurrentPageView();
+        const pageView = await docView.getPageView(rectArr[index].pageIndex);
+        await docView.gotoPageView(rectArr[index].pageIndex);
         const textSelectTool = await TextSelectTool.create({ doc });
-        await textSelectTool.addSelect(pageView, rectArr[index]);
+        await textSelectTool.addSelect(pageView, rectArr[index].rectArrayItem);
     }
 }
