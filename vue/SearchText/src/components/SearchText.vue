@@ -16,7 +16,7 @@ import {
 const { proxy }: any = getCurrentInstance();
 const app = (proxy as { $pluginApp: any }).$pluginApp;
 const text = ref('');
-const rectArr = ref<FloatRectArray[]>([]);
+const rectArr = ref<Array<{ pageIndex: number; rectArrayItem: FloatRectArray }>>([]);
 const searchResultText = ref(''); // 搜索后的文本
 const hasSearchResult = ref(true); // 是否有搜索结果
 const lastSearchText = ref(''); // 上一次搜索的文本
@@ -49,45 +49,46 @@ const searchText = async () => {
     console.log('searchResultText', searchResultText.value);
     let doc = await app.getActiveDoc();
     console.log('app.getActiveDoc', doc);
-
+    const pageCount = await doc.getPageCount();
     let docView = await doc.getCurrentDocView();
     console.log('doc.getCurrentDocView', docView);
     let pageView = await docView.getCurrentPageView();
     console.log('docView.getCurrentPageView', pageView);
-    let page = await doc.getPage(0);
-    console.log('doc.getPage', page);
-
-    //一种方式, 根据指定page，通过TextPage.create创建TextPage对象
-    // let textPage = await TextPage.create({
-    //     page,
-    //     flag: 0,
-    // });
-    // await textPage.parseTextPage();
-    // console.log('TextPage.create', textPage);
-
-    //第二种方式
-    let textPage = await page.getTextPage();
-    let pageTextSearch = await textPage.createPageTextSearch();
-    console.log('textPage.createPageTextSearch', pageTextSearch);
-    // let bFind = await pageTextSearch.findFirst('长方形', 0, 0);
-    let bFind = await pageTextSearch.findFirst(searchResultText.value, 0, 0);
-
     let rectArray = await FloatRectArray.create();
+    for (let pageIndex = 0; pageIndex < pageCount; pageIndex++) {
+        let page = await doc.getPage(pageIndex);
+        console.log('doc.getPage', pageIndex, page);
 
-    while (bFind) {
-        console.log('FindNext', bFind);
-        let rectArrayItem = await pageTextSearch.getRectArray();
-        console.log('rectArrayItem', rectArrayItem);
-        if (rectArrayItem === null) {
-            throw new Error('rectArrayItem failed');
+        //一种方式, 根据指定page，通过TextPage.create创建TextPage对象
+        // let textPage = await TextPage.create({
+        //     page,
+        //     flag: 0,
+        // });
+        // await textPage.parseTextPage();
+        // console.log('TextPage.create', textPage);
+
+        //第二种方式
+        let textPage = await page.getTextPage();
+        let pageTextSearch = await textPage.createPageTextSearch();
+        console.log('textPage.createPageTextSearch', pageIndex, pageTextSearch);
+        // let bFind = await pageTextSearch.findFirst('长方形', 0, 0);
+        let bFind = await pageTextSearch.findFirst(searchResultText.value, 0, 0);
+
+        while (bFind) {
+            console.log('FindNext', pageIndex, bFind);
+            let rectArrayItem = await pageTextSearch.getRectArray();
+            console.log('rectArrayItem', pageIndex, rectArrayItem);
+            if (rectArrayItem === null) {
+                throw new Error('rectArrayItem failed');
+            }
+            let rectCount = await rectArrayItem.getSize();
+            console.log('rectCount', pageIndex, rectCount);
+            if (rectCount > 0) {
+                await rectArray.append(rectArrayItem);
+                rectArr.value.push({ pageIndex, rectArrayItem });
+            }
+            bFind = await pageTextSearch.findNext();
         }
-        let rectCount = await rectArrayItem.getSize();
-        console.log('rectCount', rectCount);
-        if (rectCount > 0) {
-            await rectArray.append(rectArrayItem);
-            rectArr.value.push(rectArrayItem);
-        }
-        bFind = await pageTextSearch.findNext();
     }
     let findRectSize = await rectArray.getSize();
     console.log('findRectSize', findRectSize, rectArray);
@@ -101,9 +102,11 @@ const searchText = async () => {
 const selectItem = async (index: number) => {
     let doc = await app.getActiveDoc();
     let docView = await doc.getCurrentDocView();
-    let pageView = await docView.getCurrentPageView();
+    let pageView = await docView.getPageView(rectArr.value[index].pageIndex);
+    await docView.gotoPageView(rectArr.value[index].pageIndex);
+    let rectArrayItem = rectArr.value[index].rectArrayItem;
     let textSelectTool = await TextSelectTool.create({ doc });
-    await textSelectTool.addSelect(pageView, rectArr.value[index]);
+    await textSelectTool.addSelect(pageView, rectArrayItem);
 }
 
 const registerDocHandler = async () => {
