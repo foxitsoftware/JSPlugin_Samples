@@ -3,3 +3,6 @@
 node_modules
 .history
 dist
+.cz-config.js
+.czrc
+cz-adapter.js
