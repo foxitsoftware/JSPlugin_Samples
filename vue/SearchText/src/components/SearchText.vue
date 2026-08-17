@@ -144,7 +144,7 @@ onMounted(() => {
                 :key="item"
                 @click="selectItem(index)"
             >
-                result{{index + 1}}: {{ searchResultText }}
+                result{{index + 1}}: {{ searchResultText }} (page {{ item.pageIndex + 1 }})
             </n-list-item>
         </n-list>
 
