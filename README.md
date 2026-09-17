@@ -16,7 +16,7 @@ JavaScript Plug-in Samples 是 JavaScript Plug-in SDK 的配套示例集，直�
 ### 安装福昕高级PDF编辑器
 
 从福昕软件官方网站下载福昕高级PDF编辑器安装包并安装。
-推荐下载地址：https://www.foxitsoftware.cn/pdf-editor/
+推荐下载地址：[https://cn.fuxinsoft.cn/downloads/](https://cn.fuxinsoft.cn/downloads/)
 
 ### 安装JavaScript插件管理器插件
 
