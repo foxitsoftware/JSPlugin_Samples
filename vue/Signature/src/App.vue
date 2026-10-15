@@ -6,11 +6,22 @@ import Signature from '@components/Signature.vue';
 
 <template>
     <n-config-provider inline-theme-disabled :theme-overrides="themeOverrides">
-        <n-divider>
+        <header class="app-title">
             <h2>Javascript Plug-in demo</h2>
-        </n-divider>
+        </header>
+        <n-divider />
         <Signature />
     </n-config-provider>
 </template>
 
-<style scoped></style>
+<style scoped>
+.app-title {
+    min-width: 0;
+    padding: 0 0.5rem;
+    text-align: center;
+}
+
+.app-title h2 {
+    margin: 0;
+}
+</style>
