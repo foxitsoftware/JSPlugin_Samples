@@ -22,6 +22,7 @@ let pageView = null;
 let signatureName = ref('');
 const signatureData = ref<any[]>([]);
 const clearSignatureInfo = ref<String>('');
+const signatureTableWidth = 800;
 
 const columns = ref([
     {
@@ -210,7 +211,7 @@ onMounted(async () => {
                 v-model:value="signatureName"
                 title="请输入你要移除的signatureName，如：Signature_0"
                 placeholder="请输入你要移除的signatureName，如：Signature_0"
-                :style="{ width: '200px' }"
+                class="signature-name-input"
             ></n-input>
             <n-button class="signature-btn" :disabled="!signatureName" @click="clearSignature">clearSignature</n-button>
         </div>
@@ -222,6 +223,7 @@ onMounted(async () => {
             :columns="columns"
             :data="signatureData"
             :bordered="true"
+            :scroll-x="signatureTableWidth"
         >
             <template #empty>
                 <div class="empty"></div>
@@ -232,15 +234,39 @@ onMounted(async () => {
 
 <style scoped lang='less'>
 .signature-content {
+    min-width: 0;
     text-align: left;
     .signature-btn {
-        margin-top: 10px;
-        margin-left: 10px;
+        margin: 10px 0 0 10px;
     }
     .signature-clear {
         display: flex;
+        gap: 10px;
+        flex-wrap: nowrap;
         justify-content: center;
         align-items: baseline;
+
+        .signature-name-input {
+            flex: 1 1 200px;
+            min-width: 0;
+            margin-top: 10px;
+        }
+
+        .signature-btn {
+            flex: 0 0 auto;
+            margin-left: 0;
+        }
+    }
+
+    :deep(.n-data-table) {
+        max-width: 100%;
+    }
+
+    :deep(.n-data-table-td),
+    :deep(.n-data-table-th) {
+        white-space: nowrap;
+        word-break: normal;
+        overflow-wrap: normal;
     }
 }
 </style>
